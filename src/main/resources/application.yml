@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: bottom-cv
+  datasource:
+    url: jdbc:mysql://localhost:3306/bottom_cv?createDatabaseIfNotExist=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  security:
+    jwt:
+      secret-key: c0a7a038386133fcfeab9877786cc50d3029064353178b622a95750cac6a8792
+      expiration-time: 3600000
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  packages-to-scan:
+    - com.cnpm.bottomcv
+
+info:
+  app:
+    name: "bottom-cv"
+    description: "Bottom cv, the application to find job for everyone"
+    version: "1.0.0"
+
+server:
+  port: 8088
