@@ -11,8 +11,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-
-
     public List<User> allUsers() {
         return new ArrayList<>(userRepository.findAll());
     }

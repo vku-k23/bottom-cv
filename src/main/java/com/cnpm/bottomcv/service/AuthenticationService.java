@@ -1,4 +1,5 @@
 package com.cnpm.bottomcv.service;
+
 import com.cnpm.bottomcv.dto.LoginUserDto;
 import com.cnpm.bottomcv.dto.RegisterUserDto;
 import com.cnpm.bottomcv.model.User;
@@ -24,7 +25,6 @@ public class AuthenticationService {
                 .userCode(UUID.randomUUID().toString())
                 .password(passwordEncoder.encode(input.getPassword()))
                 .build();
-
 
         return userRepository.save(user);
     }
