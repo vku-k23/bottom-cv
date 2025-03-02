@@ -9,6 +9,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -19,6 +21,7 @@ public class AuthenticationService {
     public User signup(RegisterUserDto input) {
         User user = User.builder()
                 .username(input.getUsername())
+                .userCode(UUID.randomUUID().toString())
                 .password(passwordEncoder.encode(input.getPassword()))
                 .build();
 
