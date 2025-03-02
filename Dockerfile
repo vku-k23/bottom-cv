@@ -15,6 +15,4 @@ COPY --from=build /app/target/*.jar /run/app.jar
 
 EXPOSE 8888
 
-ENV JAVA_OPTIONS="-Xmx2048m -Xms256m"
-
-ENTRYPOINT java $JAVA_OPTIONS -jar /run/app.jar
+ENTRYPOINT ["java", "-Xmx2048m", "-Xms256m", "-jar", "/run/app.jar"]
