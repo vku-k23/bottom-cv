@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.service.jwt;
 
+import com.cnpm.bottomcv.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -21,10 +22,10 @@ public class JwtService {
 
     private static final Logger logger = Logger.getLogger(JwtService.class.getName());
 
-    @Value("${spring.security.jwt.secret-key:defaultSecretKey}")
+    @Value("${spring.security.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${spring.security.jwt.expiration-time:86400000}") // Default: 24 hours
+    @Value("${spring.security.jwt.expirationMs:900000}")
     private long jwtExpiration;
 
     public String extractUsername(String token) {
@@ -59,7 +60,7 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(Date.from(Instant.now()))
                 .setExpiration(Date.from(Instant.now().plusMillis(expiration)))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS512) // Use HS512 for stronger security
+                .signWith(getSignInKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 

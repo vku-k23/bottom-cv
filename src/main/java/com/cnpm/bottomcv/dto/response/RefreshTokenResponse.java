@@ -1,14 +1,15 @@
 package com.cnpm.bottomcv.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Builder
-@ToString
-public class LoginResponse {
+public class RefreshTokenResponse {
     private String accessToken;
     private String refreshToken;
-    private long expiresIn;
 }
