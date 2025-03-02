@@ -17,4 +17,4 @@ EXPOSE 8888
 
 ENV JAVA_OPTIONS="-Xmx2048m -Xms256m"
 
-ENTRYPOINT ["java", "-jar", "$JAVA_OPTIONS", "/run/app.jar"]
+ENTRYPOINT java $JAVA_OPTIONS -jar /run/app.jar
