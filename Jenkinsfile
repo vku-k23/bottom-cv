@@ -11,7 +11,7 @@ pipeline {
         SSH_CREDENTIALS_ID = "sg-server"
         REMOTE_SERVER = "146.190.93.46"
         REMOTE_USER = "root"
-        DOCKER_COMPOSE_FILE = "docker-compose.yml"
+        REPO_URL = "https://github.com/vku-k23/bottom-cv"
     }
      stages {
             stage('Checkout') {
@@ -47,9 +47,16 @@ pipeline {
                                 ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER} << 'EOF'
                                 docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
-                                docker-compose -f ${DOCKER_COMPOSE_FILE} down
+                                cd project/
 
-                                docker-compose -f ${DOCKER_COMPOSE_FILE} up -d
+                                rm -rf ${DOCKER_IMAGE_NAME}
+
+                                git clone ${REPO_URL}
+
+                                cd ${DOCKER_IMAGE_NAME}/
+
+                                docker-compose up -d
+
                                 EOF
                             """
                         }
