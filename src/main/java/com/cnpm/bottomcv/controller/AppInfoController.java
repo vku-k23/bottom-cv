@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Authentication API", description = "The API of JWT authentication")
+@Tag(name = "App info API", description = "The API of app info")
 @RestController
 @RequestMapping(value = "/api/info", produces = {MediaType.APPLICATION_JSON_VALUE})
 @RequiredArgsConstructor
