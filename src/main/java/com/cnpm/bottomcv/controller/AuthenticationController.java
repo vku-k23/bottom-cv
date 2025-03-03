@@ -11,6 +11,7 @@ import com.cnpm.bottomcv.service.AuthenticationService;
 import com.cnpm.bottomcv.service.RefreshTokenService;
 import com.cnpm.bottomcv.service.jwt.JwtService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,7 +39,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDto loginUserDto) {
+    public ResponseEntity<LoginResponse> authenticate(@Valid @RequestBody LoginUserDto loginUserDto) {
         User authenticatedUser = authenticationService.authenticate(loginUserDto);
         String jwtToken = jwtService.generateToken(authenticatedUser);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(authenticatedUser.getId());
@@ -54,7 +55,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
         String requestRefreshToken = refreshTokenRequest.getRefreshToken();
 
         return refreshTokenService.findByToken(requestRefreshToken)
