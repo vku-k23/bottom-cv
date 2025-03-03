@@ -13,4 +13,6 @@ import lombok.NoArgsConstructor;
 public class RoleResponse {
     private Long id;
     private RoleType name;
+    private String createdAt;
+    private String updatedAt;
 }

@@ -21,4 +21,6 @@ public class ProfileResponse {
     private String email;
     private String avatar;
     private String description;
+    private String createdAt;
+    private String updatedAt;
 }

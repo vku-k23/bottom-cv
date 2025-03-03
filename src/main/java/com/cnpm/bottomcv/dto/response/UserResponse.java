@@ -17,4 +17,7 @@ public class UserResponse {
     private String username;
     private Set<RoleResponse> roles;
     private ProfileResponse profile;
+    private boolean enabled;
+    private String createdAt;
+    private String updatedAt;
 }

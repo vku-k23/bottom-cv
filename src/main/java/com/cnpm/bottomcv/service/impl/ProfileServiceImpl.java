@@ -105,6 +105,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .email(profile.getEmail())
                 .phoneNumber(profile.getPhoneNumber())
                 .address(profile.getAddress())
+                .createdAt(profile.getCreatedAt().toString())
+                .updatedAt(profile.getUpdatedAt().toString())
                 .build();
     }
 }
