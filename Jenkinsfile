@@ -45,10 +45,10 @@ pipeline {
                         sshagent(credentials: [SSH_CREDENTIALS_ID]) {
                             try {
                                 sh """
-                                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER} << 'EOF'
+                                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER} <<EOF
                                     docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
-                                    cd project/
+                                    mkdir -p project && cd project
 
                                     rm -rf ${DOCKER_IMAGE_NAME}
 
