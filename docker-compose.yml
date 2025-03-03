@@ -20,7 +20,7 @@ services:
       - bottom-cv-network
 
   bottom-cv:
-    image: vietquoc2408/bottom-cv:0.0.1
+    image: vietquoc2408/bottom-cv:0.0.2
     container_name: bottom-cv
     ports:
       - "8088:8088"
