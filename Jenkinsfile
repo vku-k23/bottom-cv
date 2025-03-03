@@ -45,19 +45,13 @@ pipeline {
                         sshagent(credentials: [SSH_CREDENTIALS_ID]) {
                             try {
                                 sh """
-                                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER} <<EOF
+                                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER} << 'EOF'
                                     docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
                                     mkdir -p project && cd project
 
-                                    rm -rf ${DOCKER_IMAGE_NAME}
-
-                                    git clone ${REPO_URL}
-
-                                    cd ${DOCKER_IMAGE_NAME}/
-
                                     docker-compose up -d
-                                    EOF
+EOF
                                 """
                             } catch (Exception e) {
                                 echo "Deployment failed: ${e}"
