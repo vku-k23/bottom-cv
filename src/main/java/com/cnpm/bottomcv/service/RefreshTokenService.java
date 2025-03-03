@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.service;
 
+import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.RefreshToken;
 import com.cnpm.bottomcv.repository.RefreshTokenRepository;
 import com.cnpm.bottomcv.repository.UserRepository;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class RefreshTokenService {
     @Value("${spring.security.jwt.refreshExpirationMs:604800000}")
     private long refreshExpirationMs;
@@ -22,8 +24,11 @@ public class RefreshTokenService {
     private final UserRepository userRepository;
 
     public RefreshToken createRefreshToken(Long userId) {
+        deleteByUserId(userId);
+
         RefreshToken refreshToken = new RefreshToken();
-        refreshToken.setUser(userRepository.findById(userId).get());
+        refreshToken.setUser(userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User id: ", "userId", userId.toString())));
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshExpirationMs));
         refreshToken.setToken(UUID.randomUUID().toString());
 
@@ -43,8 +48,7 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }
 
-    @Transactional
     public void deleteByUserId(Long userId) {
-        refreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
+        refreshTokenRepository.deleteByUserId(userId);
     }
 }

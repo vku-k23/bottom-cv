@@ -12,7 +12,6 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class UserRequest extends RegisterUserDto {
     @NotNull(message = "Roles is required")
     private Set<Role> roles = new HashSet<>();
