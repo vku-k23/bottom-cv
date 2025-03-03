@@ -37,5 +37,14 @@ info:
     description: "Bottom cv, the application to find job for everyone"
     version: "1.0.0"
 
+bottom-cv:
+  message: "From bottom application, we hope you can find the best job for you"
+  contactInfo:
+    name: "Nguyen Quoc Viet"
+    email: "vietnq.23ceb@vku.udn.vn"
+  onCallSupport:
+    - (+84)123456789
+    - (+84)123456789
+
 server:
   port: 8088
