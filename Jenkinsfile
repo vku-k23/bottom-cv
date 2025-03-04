@@ -41,15 +41,11 @@ pipeline {
         stage('Update Jira Issue to In Progress') {
             steps {
                 script {
-                    // Sửa cú pháp kết nối Jira
-                    def jira = jiraConnection(id: "${JIRA_SITE}")
-
-                    jiraTransitionIssue(
-                        idOrKey: env.ISSUE_KEY, 
-                        input: [transition: [id: '21']], 
-                        site: jira 
+                    jiraSendBuildInfo(
+                        site: "${JIRA_SITE}",
+                        issueKey: "${env.ISSUE_KEY}",
+                        buildStatus: 'in progress'
                     )
-                    echo "Updated issue ${env.ISSUE_KEY} to In Progress."
                 }
             }
         }
@@ -78,8 +74,8 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(
-                        credentialsId: 'dockerhub-account', 
-                        usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', 
+                        credentialsId: 'dockerhub-account',
+                        usernameVariable: 'DOCKERHUB_CREDENTIALS_USR',
                         passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW'
                     )]) {
                         sh """
@@ -115,18 +111,23 @@ EOF
                             """
                             echo "Deployment successful!"
 
-                            def jira = jiraConnection(id: "${JIRA_SITE}")
-
-                            jiraTransitionIssue(
-                                idOrKey: env.ISSUE_KEY, 
-                                input: [transition: [id: '31']], 
-                                site: jira
+                            jiraSendDeploymentInfo(
+                                site: "${JIRA_SITE}",
+                                issueKey: "${env.ISSUE_KEY}",
+                                deploymentStatus: 'successful'
                             )
 
                             echo "Updated issue ${env.ISSUE_KEY} to Done."
                         } catch (Exception e) {
                             echo "Deployment failed: ${e}"
                             currentBuild.result = 'FAILURE'
+
+                            jiraSendDeploymentInfo(
+                                site: "${JIRA_SITE}",
+                                issueKey: "${env.ISSUE_KEY}",
+                                deploymentStatus: 'failed'
+                            )
+
                             throw e
                         }
                     }
