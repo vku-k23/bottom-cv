@@ -1,6 +1,4 @@
-// This is a declarative pipeline script to build a Docker image, push it to Docker Hub, and deploy it to a remote server using SSH.
 pipeline {
-
     agent any
 
     environment {
@@ -13,62 +11,118 @@ pipeline {
         REMOTE_USER = "root"
         REPO_URL = "https://github.com/vku-k23/bottom-cv"
     }
-     stages {
-            stage('Checkout') {
-                steps {
-                    checkout scm
-                }
-            }
 
-            stage('Build Docker Image') {
-                steps {
-                    script {
-                         sh """docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."""
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Extract Issue Key from Commit Message') {
+            steps {
+                script {
+                    def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                    def issueKeyMatcher = commitMessage =~ /(SCRUM-\d+)/
+
+                    if (issueKeyMatcher) {
+                        env.ISSUE_KEY = issueKeyMatcher[0][1]
+                        echo "Found issue key in commit message: ${env.ISSUE_KEY}"
+                    } else {
+                        echo "No issue key found in commit message."
+                        currentBuild.result = 'ABORTED'
+                        error("No issue key found in commit message. Aborting pipeline.")
                     }
                 }
             }
+        }
 
-            stage('Push Docker Image') {
-                steps {
-                    script {
-                         withCredentials([usernamePassword(credentialsId: 'dockerhub-account', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
-                            sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
-                        }
-                        sh "docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
+        stage('Update Jira Issue to In Progress') {
+            steps {
+                 echo 'Update Jira Issue status ...'
+            }
+            post {
+                 always {
+                     jiraSendBuildInfo site: 'vku-k23'
+                 }
+             }
+        }
+
+        stage('Build Docker Image') {
+            when {
+                anyOf {
+                    branch 'prod'
+                    branch 'docker'
+                }
+            }
+            steps {
+                script {
+                    sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            when {
+                anyOf {
+                    branch 'prod'
+                    branch 'docker'
+                }
+            }
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub-account',
+                        usernameVariable: 'DOCKERHUB_CREDENTIALS_USR',
+                        passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW'
+                    )]) {
+                        sh """
+                            echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
+                            docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
+                        """
                     }
                 }
             }
+        }
 
-            stage('Deploy to Server') {
-                steps {
-                    script {
-                        sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-                            try {
-                                sh """
-                                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER} << 'EOF'
+        stage('Deploy to Server') {
+            when {
+                branch 'prod'
+            }
+            steps {
+                script {
+                    sshagent(credentials: [SSH_CREDENTIALS_ID]) {
+                        try {
+                            sh """
+                                ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER} << 'EOF'
+                                docker stop ${DOCKER_IMAGE_NAME} || true
+                                docker rm ${DOCKER_IMAGE_NAME} || true
 
-                                    docker stop ${DOCKER_IMAGE_NAME} || true
-                                    docker rm ${DOCKER_IMAGE_NAME} || true
+                                docker images --format "{{.Repository}}:{{.ID}}" | awk -v img="${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}" '\$1 == img {print \$2}' | xargs -r docker rmi -f
 
-                                    docker images --format "{{.Repository}}:{{.ID}}" | awk -v img="${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}" '\$1 == img {print \$2}' | xargs -r docker rmi -f
+                                docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
-                                    docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
+                                mkdir -p project && cd project
 
-                                    mkdir -p project && cd project
-
-                                    docker-compose up -d
+                                docker-compose up -d
 EOF
-                                """
-                            } catch (Exception e) {
-                                echo "Deployment failed: ${e}"
-                                currentBuild.result = 'FAILURE'
-                                throw e
-                            }
+                            """
+                            echo "Deployment successful!"
+                        } catch (Exception e) {
+                            echo "Deployment failed: ${e}"
+                            currentBuild.result = 'FAILURE'
+                            throw e
                         }
                     }
                 }
             }
-     }
+             post {
+                 always {
+                     jiraSendDeploymentInfo site: 'vku-k23', environmentId: 'stg-base', environmentName: 'stg-base', environmentType: 'staging'
+                 }
+             }
+        }
+    }
 
     post {
         success {
