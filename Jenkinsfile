@@ -12,6 +12,7 @@ pipeline {
         REMOTE_SERVER = "146.190.93.46"
         REMOTE_USER = "root"
         REPO_URL = "https://github.com/vku-k23/bottom-cv"
+        JIRA_SITE = 'vku-k23'
     }
      stages {
             stage('Checkout') {
@@ -20,7 +21,43 @@ pipeline {
                 }
             }
 
+            stage('Extract Issue Key from Commit Message') {
+                steps {
+                    script {
+                        def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+
+                        def issueKey = commitMessage =~ /(SCRUM-\d+)/ ? commitMessage.find(/SCRUM-\d+/) : null
+
+                        if (issueKey) {
+                            env.ISSUE_KEY = issueKey
+                            echo "Found issue key in commit message: ${issueKey}"
+                        } else {
+                            echo "No issue key found in commit message."
+                            currentBuild.result = 'ABORTED'
+                            error("No issue key found in commit message. Aborting pipeline.")
+                        }
+                    }
+                }
+            }
+
+            stage('Update Jira Issue to In Progress') {
+                steps {
+                    script {
+                        def jira = jiraConnection id: ${JIRA_SITE}
+
+                        jiraTransitionIssue idOrKey: env.ISSUE_KEY, input: [transition: [id: '21']], site: jira // Thay bằng ID transition phù hợp
+                        echo "Updated issue ${env.ISSUE_KEY} to In Progress."
+                    }
+                }
+            }
+
             stage('Build Docker Image') {
+                when {
+                    anyOf {
+                        branch 'prod'
+                        branch 'docker'
+                    }
+                }
                 steps {
                     script {
                          sh """docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."""
@@ -29,6 +66,12 @@ pipeline {
             }
 
             stage('Push Docker Image') {
+                when {
+                    anyOf {
+                        branch 'prod'
+                        branch 'docker'
+                    }
+                }
                 steps {
                     script {
                          withCredentials([usernamePassword(credentialsId: 'dockerhub-account', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
@@ -40,6 +83,9 @@ pipeline {
             }
 
             stage('Deploy to Server') {
+                when {
+                    branch 'prod'
+                }
                 steps {
                     script {
                         sshagent(credentials: [SSH_CREDENTIALS_ID]) {
@@ -59,6 +105,13 @@ pipeline {
                                     docker-compose up -d
 EOF
                                 """
+                            echo "Deployment successful!"
+
+                            def jira = jiraConnection id: ${JIRA_SITE}
+
+                            jiraTransitionIssue idOrKey: env.ISSUE_KEY, input: [transition: [id: '31']], site: jira
+
+                            echo "Updated issue ${env.ISSUE_KEY} to Done."
                             } catch (Exception e) {
                                 echo "Deployment failed: ${e}"
                                 currentBuild.result = 'FAILURE'
