@@ -11,6 +11,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+
+/**
+ * The main class of the application
+ * test jira integration in scrum-1
+ */
+
 @SpringBootApplication
 @EnableConfigurationProperties(AppContactDto.class)
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
