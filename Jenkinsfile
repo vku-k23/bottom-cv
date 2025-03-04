@@ -1,6 +1,4 @@
 // This is a declarative pipeline script to build a Docker image, push it to Docker Hub, and deploy it to a remote server using SSH.
-
-
 pipeline {
 
     agent any
