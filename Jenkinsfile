@@ -27,6 +27,8 @@ pipeline {
         stage('Extract Issue Key from Commit Message') {
             steps {
                 script {
+                    echo "${env.BRANCH_NAME}"
+
                     def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
                     def issueKeyMatcher = commitMessage =~ /(SCRUM-\d+)/
 
