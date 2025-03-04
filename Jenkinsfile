@@ -11,7 +11,7 @@ pipeline {
         REMOTE_USER = "root"
         REPO_URL = "https://github.com/vku-k23/bottom-cv"
         JIRA_EMAIL = credentials('jira-email')
-        JIRA_API_TOKEN = credentials('jira-secret')
+        JIRA_API_TOKEN = credentials('jira-api-token')
         JIRA_BASE_URL = "https://vku-k23.atlassian.net"
     }
 
