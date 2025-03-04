@@ -10,7 +10,6 @@ pipeline {
         REMOTE_SERVER = "146.190.93.46"
         REMOTE_USER = "root"
         REPO_URL = "https://github.com/vku-k23/bottom-cv"
-        JIRA_SITE = 'vku-k23'
     }
 
     stages {
@@ -24,10 +23,10 @@ pipeline {
             steps {
                 script {
                     def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
-                    def issueKeyMatcher = (commitMessage =~ /(SCRUM-\d+)/)
+                    def issueKeyMatcher = commitMessage =~ /(SCRUM-\d+)/
 
-                    if (issueKeyMatcher.find()) {
-                        env.ISSUE_KEY = issueKeyMatcher[0]
+                    if (issueKeyMatcher) {
+                        env.ISSUE_KEY = issueKeyMatcher[0][1]
                         echo "Found issue key in commit message: ${env.ISSUE_KEY}"
                     } else {
                         echo "No issue key found in commit message."
@@ -40,14 +39,13 @@ pipeline {
 
         stage('Update Jira Issue to In Progress') {
             steps {
-                script {
-                    jiraTransitionIssue(
-                        issueKey: env.ISSUE_KEY,
-                        transitionId: "11" 
-                    )
-                    echo "Updated Jira Issue ${env.ISSUE_KEY} to 'In Progress'"
-                }
+                 echo 'Update Jira Issue status ...'
             }
+            post {
+                 always {
+                     jiraSendBuildInfo site: 'vku-k23'
+                 }
+             }
         }
 
         stage('Build Docker Image') {
@@ -110,12 +108,6 @@ pipeline {
 EOF
                             """
                             echo "Deployment successful!"
-
-                            jiraTransitionIssue(
-                                issueKey: env.ISSUE_KEY,
-                                transitionId: "31"
-                            )
-                            echo "Updated issue ${env.ISSUE_KEY} to Done."
                         } catch (Exception e) {
                             echo "Deployment failed: ${e}"
                             currentBuild.result = 'FAILURE'
@@ -124,6 +116,11 @@ EOF
                     }
                 }
             }
+             post {
+                 always {
+                     jiraSendDeploymentInfo site: 'vku-k23', environmentId: 'stg-base', environmentName: 'stg-base', environmentType: 'staging'
+                 }
+             }
         }
     }
 
