@@ -10,6 +10,9 @@ pipeline {
         REMOTE_SERVER = "146.190.93.46"
         REMOTE_USER = "root"
         REPO_URL = "https://github.com/vku-k23/bottom-cv"
+        JIRA_EMAIL = credentials('jira-email')
+        JIRA_API_TOKEN = credentials('jira-secret')
+        JIRA_BASE_URL = "https://vku-k23.atlassian.net"
     }
 
     stages {
@@ -38,8 +41,22 @@ pipeline {
         }
 
         stage('Update Jira Issue to In Progress') {
-            steps {
-                 echo 'Update Jira Issue status ...'
+             steps {
+                script {
+                    def transitionId = "21"
+
+                    sh """
+                        curl -u ${JIRA_EMAIL}:${JIRA_API_TOKEN} -X POST \
+                        -H "Content-Type: application/json" \
+                        --data '{
+                            "transition": {
+                                "id": "${transitionId}"
+                            }
+                        }' \
+                        "${JIRA_BASE_URL}/rest/api/3/issue/${env.ISSUE_KEY}/transitions"
+                    """
+                    echo "Updated issue ${env.ISSUE_KEY} to In Progress."
+                }
             }
             post {
                  always {
@@ -108,6 +125,19 @@ pipeline {
 EOF
                             """
                             echo "Deployment successful!"
+                            def transitionId = "31"
+
+                            sh """
+                                curl -u ${JIRA_EMAIL}:${JIRA_API_TOKEN} -X POST \
+                                -H "Content-Type: application/json" \
+                                --data '{
+                                    "transition": {
+                                        "id": "${transitionId}"
+                                    }
+                                }' \
+                                "${JIRA_BASE_URL}/rest/api/3/issue/${env.ISSUE_KEY}/transitions"
+                            """
+                            echo "Updated issue ${env.ISSUE_KEY} to Done."
                         } catch (Exception e) {
                             echo "Deployment failed: ${e}"
                             currentBuild.result = 'FAILURE'
