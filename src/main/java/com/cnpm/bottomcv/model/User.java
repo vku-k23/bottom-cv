@@ -49,6 +49,10 @@ public class User extends BaseEntity implements UserDetails {
     @JsonManagedReference
     private Profile profile;
 
+    @ManyToOne
+    @JoinColumn(name = "company_id")
+    private Company company;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
