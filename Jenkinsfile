@@ -1,4 +1,5 @@
 // Pipeline script for CI/CD with Jenkins and Jira
+// The first time deploy
 pipeline {
     agent any
 
