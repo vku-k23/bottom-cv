@@ -1,3 +1,4 @@
+// Pipeline script for CI/CD with Jenkins and Jira
 pipeline {
     agent any
 
