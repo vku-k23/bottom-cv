@@ -63,7 +63,9 @@ public class AuthenticationController {
                 .map(RefreshToken::getUser)
                 .map(user -> {
                     String accessToken = jwtService.generateToken(user);
-                    return ResponseEntity.ok(new RefreshTokenResponse(accessToken, requestRefreshToken));
+                    return ResponseEntity
+                            .status(HttpStatus.OK)
+                            .body(new RefreshTokenResponse(accessToken, requestRefreshToken));
                 })
                 .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
     }

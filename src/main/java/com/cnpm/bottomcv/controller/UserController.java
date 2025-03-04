@@ -3,8 +3,6 @@ package com.cnpm.bottomcv.controller;
 import com.cnpm.bottomcv.dto.request.UserRequest;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.UserResponse;
-import com.cnpm.bottomcv.model.User;
-import com.cnpm.bottomcv.repository.UserRepository;
 import com.cnpm.bottomcv.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Users API", description = "The API of users just for admin role")
 @RequestMapping(value = "/api/back/users", produces = {MediaType.APPLICATION_JSON_VALUE})
