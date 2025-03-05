@@ -71,7 +71,7 @@ pipeline {
 
         stage('Build Docker Image') {
             when {
-                branch 'prod'
+                 expression { sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim() == 'prod' }
             }
 //             when {
 //                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
@@ -96,7 +96,7 @@ pipeline {
 //                 }
 //             }
             when {
-                branch 'prod'
+                expression { sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim() == 'prod' }
             }
             steps {
                 script {
@@ -116,7 +116,7 @@ pipeline {
 
         stage('Deploy to Server') {
             when {
-                branch 'prod'
+                expression { sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim() == 'prod' }
             }
             steps {
                 script {
