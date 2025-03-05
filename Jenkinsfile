@@ -70,13 +70,19 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            when {
-                expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
+//             when {
+//                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
+//                 anyOf {
+//                     environment name: 'DEPLOY_TO', value: 'prod'
+//                     environment name: 'DEPLOY_TO', value: 'docker'
+//                 }
+//             }
+             when {
                 anyOf {
-                    environment name: 'DEPLOY_TO', value: 'prod'
-                    environment name: 'DEPLOY_TO', value: 'docker'
+                    branch 'docker'
+                    branch 'prod'
                 }
-            }
+             }
             steps {
                 script {
                     sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
@@ -85,13 +91,19 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-            when {
-                expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
+//             when {
+//                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
+//                 anyOf {
+//                     environment name: 'DEPLOY_TO', value: 'prod'
+//                     environment name: 'DEPLOY_TO', value: 'docker'
+//                 }
+//             }
+             when {
                 anyOf {
-                    environment name: 'DEPLOY_TO', value: 'prod'
-                    environment name: 'DEPLOY_TO', value: 'docker'
+                    branch 'docker'
+                    branch 'prod'
                 }
-            }
+             }
             steps {
                 script {
                     withCredentials([usernamePassword(
@@ -109,9 +121,12 @@ pipeline {
         }
 
         stage('Deploy to Server') {
-            when {
-                expression { env.BRANCH_NAME == 'prod' }
-            }
+//             when {
+//                 expression { env.BRANCH_NAME == 'prod' }
+//             }
+             when {
+                branch 'prod'
+             }
             steps {
                 script {
                     sshagent(credentials: [SSH_CREDENTIALS_ID]) {
