@@ -1,5 +1,5 @@
 // Pipeline script for CI/CD with Jenkins and Jira
-// by vietviet08 
+// by vietviet08
 pipeline {
     agent any
 
@@ -71,9 +71,10 @@ pipeline {
 
         stage('Build Docker Image') {
             when {
+                expression { BRANCH_NAME ==~ /(prod|docker)/ }
                 anyOf {
-                    branch 'prod'
-                    branch 'docker'
+                    environment name: 'DEPLOY_TO', value: 'prod'
+                    environment name: 'DEPLOY_TO', value: 'docker'
                 }
             }
             steps {
@@ -85,9 +86,10 @@ pipeline {
 
         stage('Push Docker Image') {
             when {
+                expression { BRANCH_NAME ==~ /(prod|docker)/ }
                 anyOf {
-                    branch 'prod'
-                    branch 'docker'
+                    environment name: 'DEPLOY_TO', value: 'prod'
+                    environment name: 'DEPLOY_TO', value: 'docker'
                 }
             }
             steps {
@@ -109,6 +111,7 @@ pipeline {
         stage('Deploy to Server') {
             when {
                 branch 'prod'
+                environment name: 'DEPLOY_TO', value: 'prod'
             }
             steps {
                 script {
