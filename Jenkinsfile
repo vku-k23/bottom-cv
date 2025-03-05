@@ -71,12 +71,16 @@ pipeline {
 
         stage('Build Docker Image') {
             when {
-                expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
-                anyOf {
-                    environment name: 'DEPLOY_TO', value: 'prod'
-                    environment name: 'DEPLOY_TO', value: 'docker'
-                }
+                branch 'prod'
+                environment name: 'DEPLOY_TO', value: 'prod'
             }
+//             when {
+//                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
+//                 anyOf {
+//                     environment name: 'DEPLOY_TO', value: 'prod'
+//                     environment name: 'DEPLOY_TO', value: 'docker'
+//                 }
+//             }
             steps {
                 script {
                     sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
@@ -85,12 +89,16 @@ pipeline {
         }
 
         stage('Push Docker Image') {
+//             when {
+//                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
+//                 anyOf {
+//                     environment name: 'DEPLOY_TO', value: 'prod'
+//                     environment name: 'DEPLOY_TO', value: 'docker'
+//                 }
+//             }
             when {
-                expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
-                anyOf {
-                    environment name: 'DEPLOY_TO', value: 'prod'
-                    environment name: 'DEPLOY_TO', value: 'docker'
-                }
+                branch 'prod'
+                environment name: 'DEPLOY_TO', value: 'prod'
             }
             steps {
                 script {
