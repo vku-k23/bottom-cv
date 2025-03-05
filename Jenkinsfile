@@ -71,7 +71,7 @@ pipeline {
 
         stage('Build Docker Image') {
             when {
-                expression { BRANCH_NAME ==~ /(prod|docker)/ }
+                expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
                 anyOf {
                     environment name: 'DEPLOY_TO', value: 'prod'
                     environment name: 'DEPLOY_TO', value: 'docker'
@@ -86,7 +86,7 @@ pipeline {
 
         stage('Push Docker Image') {
             when {
-                expression { BRANCH_NAME ==~ /(prod|docker)/ }
+                expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
                 anyOf {
                     environment name: 'DEPLOY_TO', value: 'prod'
                     environment name: 'DEPLOY_TO', value: 'docker'
