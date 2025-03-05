@@ -1,5 +1,5 @@
 // Pipeline script for CI/CD with Jenkins and Jira
-// by vietviet08
+// by vietviet08 updated 
 pipeline {
     agent any
 
