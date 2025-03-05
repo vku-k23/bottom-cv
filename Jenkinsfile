@@ -24,6 +24,15 @@ pipeline {
             }
         }
 
+        stage('Detect Branch') {
+            steps {
+                script {
+                    env.BRANCH_NAME = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    echo "Current Branch: ${env.BRANCH_NAME}"
+                }
+            }
+        }
+
         stage('Extract Issue Key from Commit Message') {
             steps {
                 script {
@@ -71,7 +80,7 @@ pipeline {
 
         stage('Build Docker Image') {
             when {
-                 expression { sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim() == 'prod' }
+                 expression { env.BRANCH_NAME == 'prod' }
             }
 //             when {
 //                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
@@ -96,7 +105,7 @@ pipeline {
 //                 }
 //             }
             when {
-                expression { sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim() == 'prod' }
+                expression { env.BRANCH_NAME == 'prod' }
             }
             steps {
                 script {
@@ -116,7 +125,7 @@ pipeline {
 
         stage('Deploy to Server') {
             when {
-                expression { sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim() == 'prod' }
+                expression { env.BRANCH_NAME == 'prod' }
             }
             steps {
                 script {
