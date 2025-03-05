@@ -72,7 +72,6 @@ pipeline {
         stage('Build Docker Image') {
             when {
                 branch 'prod'
-                environment name: 'DEPLOY_TO', value: 'prod'
             }
 //             when {
 //                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
@@ -98,7 +97,6 @@ pipeline {
 //             }
             when {
                 branch 'prod'
-                environment name: 'DEPLOY_TO', value: 'prod'
             }
             steps {
                 script {
@@ -119,7 +117,6 @@ pipeline {
         stage('Deploy to Server') {
             when {
                 branch 'prod'
-                environment name: 'DEPLOY_TO', value: 'prod'
             }
             steps {
                 script {
