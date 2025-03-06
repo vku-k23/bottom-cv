@@ -1,4 +1,5 @@
 // Pipeline script for CI/CD with Jenkins and Jira
+// by vietviet08
 pipeline {
     agent any
 
@@ -26,6 +27,8 @@ pipeline {
         stage('Extract Issue Key from Commit Message') {
             steps {
                 script {
+                    echo "${env.BRANCH_NAME}"
+
                     def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
                     def issueKeyMatcher = commitMessage =~ /(SCRUM-\d+)/
 
@@ -67,12 +70,19 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            when {
+//             when {
+//                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
+//                 anyOf {
+//                     environment name: 'DEPLOY_TO', value: 'prod'
+//                     environment name: 'DEPLOY_TO', value: 'docker'
+//                 }
+//             }
+             when {
                 anyOf {
-                    branch 'prod'
                     branch 'docker'
+                    branch 'prod'
                 }
-            }
+             }
             steps {
                 script {
                     sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
@@ -81,12 +91,19 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-            when {
+//             when {
+//                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
+//                 anyOf {
+//                     environment name: 'DEPLOY_TO', value: 'prod'
+//                     environment name: 'DEPLOY_TO', value: 'docker'
+//                 }
+//             }
+             when {
                 anyOf {
-                    branch 'prod'
                     branch 'docker'
+                    branch 'prod'
                 }
-            }
+             }
             steps {
                 script {
                     withCredentials([usernamePassword(
@@ -104,9 +121,12 @@ pipeline {
         }
 
         stage('Deploy to Server') {
-            when {
+//             when {
+//                 expression { env.BRANCH_NAME == 'prod' }
+//             }
+             when {
                 branch 'prod'
-            }
+             }
             steps {
                 script {
                     sshagent(credentials: [SSH_CREDENTIALS_ID]) {
