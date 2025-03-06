@@ -3,6 +3,7 @@ package com.cnpm.bottomcv.dto.response;
 
 import com.cnpm.bottomcv.constant.JobType;
 import com.cnpm.bottomcv.constant.StatusJob;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -38,6 +39,7 @@ public class JobResponse {
 
     private Double salary;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime expiryDate;
 
     private StatusJob status;

@@ -2,6 +2,7 @@ package com.cnpm.bottomcv.dto.request;
 
 import com.cnpm.bottomcv.constant.JobType;
 import com.cnpm.bottomcv.constant.StatusJob;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,6 +38,7 @@ public class JobRequest {
 
     private Double salary;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime expiryDate;
 
     private StatusJob status;
