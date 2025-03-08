@@ -22,7 +22,7 @@ pipeline {
         stage('Extract Issue Key from Commit Message') {
             steps {
                 script {
-                    echo "Branch name: ${env.BRANCH_NAME}"
+                    echo "Branch name: ${env.GIT_BRANCH}"
 
                     def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
                     def issueKeyMatcher = commitMessage =~ /(SCRUM-\d+)/
@@ -68,7 +68,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "Building Docker image on branch: ${env.BRANCH_NAME}"
+                    echo "Building Docker image on branch: ${env.GIT_BRANCH}"
                     sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
                 }
             }
@@ -83,7 +83,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "Pushing Docker image on branch: ${env.BRANCH_NAME}"
+                    echo "Pushing Docker image on branch: ${env.GIT_BRANCH}"
                     withCredentials([usernamePassword(
                         credentialsId: 'dockerhub-account',
                         usernameVariable: 'DOCKERHUB_CREDENTIALS_USR',
@@ -104,7 +104,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "Deploying to server on branch: ${env.BRANCH_NAME}"
+                    echo "Deploying to server on branch: ${env.GIT_BRANCH}"
                     try {
                         sh """
                             docker stop ${DOCKER_IMAGE_NAME} || true
