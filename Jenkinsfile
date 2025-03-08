@@ -62,8 +62,8 @@ pipeline {
         stage('Build Docker Image') {
             when {
                 anyOf {
-                    branch 'origin/docker'
-                    branch 'origin/prod'
+                    expression { env.GIT_BRANCH ==~ /(origin\/docker|docker)/ }
+                    expression { env.GIT_BRANCH ==~ /(origin\/prod|prod)/ }
                 }
             }
             steps {
@@ -77,8 +77,8 @@ pipeline {
         stage('Push Docker Image') {
             when {
                 anyOf {
-                    branch 'origin/docker'
-                    branch 'origin/prod'
+                    expression { env.GIT_BRANCH ==~ /(origin\/docker|docker)/ }
+                    expression { env.GIT_BRANCH ==~ /(origin\/prod|prod)/ }
                 }
             }
             steps {
@@ -100,7 +100,7 @@ pipeline {
 
         stage('Deploy to Server') {
             when {
-                branch 'origin/prod'
+                expression { env.GIT_BRANCH ==~ /(origin\/prod|prod)/ }
             }
             steps {
                 script {
