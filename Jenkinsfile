@@ -22,7 +22,7 @@ pipeline {
         stage('Extract Issue Key from Commit Message') {
             steps {
                 script {
-                    echo "${env.BRANCH_NAME}"
+                    echo "Branch name: ${env.GIT_BRANCH}"
 
                     def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
                     def issueKeyMatcher = commitMessage =~ /(SCRUM-\d+)/
@@ -57,22 +57,18 @@ pipeline {
                     echo "Updated issue ${env.ISSUE_KEY} to In Progress."
                 }
             }
-            post {
-                always {
-                    jiraSendBuildInfo site: 'vku-k23'
-                }
-            }
         }
 
         stage('Build Docker Image') {
             when {
                 anyOf {
-                    branch 'docker'
-                    branch 'prod'
+                    expression { env.GIT_BRANCH ==~ /(origin\/docker|docker)/ }
+                    expression { env.GIT_BRANCH ==~ /(origin\/prod|prod)/ }
                 }
             }
             steps {
                 script {
+                    echo "Building Docker image on branch: ${env.GIT_BRANCH}"
                     sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
                 }
             }
@@ -81,12 +77,13 @@ pipeline {
         stage('Push Docker Image') {
             when {
                 anyOf {
-                    branch 'docker'
-                    branch 'prod'
+                    expression { env.GIT_BRANCH ==~ /(origin\/docker|docker)/ }
+                    expression { env.GIT_BRANCH ==~ /(origin\/prod|prod)/ }
                 }
             }
             steps {
                 script {
+                    echo "Pushing Docker image on branch: ${env.GIT_BRANCH}"
                     withCredentials([usernamePassword(
                         credentialsId: 'dockerhub-account',
                         usernameVariable: 'DOCKERHUB_CREDENTIALS_USR',
@@ -103,20 +100,21 @@ pipeline {
 
         stage('Deploy to Server') {
             when {
-                branch 'prod'
+                expression { env.GIT_BRANCH ==~ /(origin\/prod|prod)/ }
             }
             steps {
                 script {
+                    echo "Deploying to server on branch: ${env.GIT_BRANCH}"
                     try {
                         sh """
-                            docker stop ${DOCKER_IMAGE_NAME} || true
-                            docker rm ${DOCKER_IMAGE_NAME} || true
+                            docker stop -f ${DOCKER_IMAGE_NAME} || true
+                            docker rm -f ${DOCKER_IMAGE_NAME} || true
 
                             docker images --format "{{.Repository}}:{{.ID}}" | awk -v img="${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}" '\$1 == img {print \$2}' | xargs -r docker rmi -f
 
                             docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
-                            mkdir -p project && cd project
+                            mkdir -p ${env.WORKSPACE} && cd ${env.WORKSPACE}
 
                             docker-compose up -d
                         """
@@ -139,14 +137,6 @@ pipeline {
                         currentBuild.result = 'FAILURE'
                         throw e
                     }
-                }
-            }
-            post {
-                success {
-                    jiraSendDeploymentInfo site: 'vku-k23', environmentId: 'stg-base', environmentName: 'stg-base', environmentType: 'staging'
-                }
-                failure {
-                    echo "Deployment failed, rollback if necessary."
                 }
             }
         }
