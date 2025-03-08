@@ -62,8 +62,8 @@ pipeline {
         stage('Build Docker Image') {
             when {
                 anyOf {
-                    branch 'docker'
-                    branch 'prod'
+                    branch 'origin/docker'
+                    branch 'origin/prod'
                 }
             }
             steps {
@@ -77,8 +77,8 @@ pipeline {
         stage('Push Docker Image') {
             when {
                 anyOf {
-                    branch 'docker'
-                    branch 'prod'
+                    branch 'origin/docker'
+                    branch 'origin/prod'
                 }
             }
             steps {
@@ -100,7 +100,7 @@ pipeline {
 
         stage('Deploy to Server') {
             when {
-                branch 'prod'
+                branch 'origin/prod'
             }
             steps {
                 script {
