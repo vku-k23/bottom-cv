@@ -1,4 +1,3 @@
-//vietviet08
 pipeline {
     agent any
 
@@ -56,11 +55,6 @@ pipeline {
                         "${JIRA_BASE_URL}/rest/api/3/issue/${env.ISSUE_KEY}/transitions"
                     """
                     echo "Updated issue ${env.ISSUE_KEY} to In Progress."
-                }
-            }
-            post {
-                always {
-                    jiraSendBuildInfo site: 'vku-k23'
                 }
             }
         }
@@ -140,14 +134,6 @@ pipeline {
                         currentBuild.result = 'FAILURE'
                         throw e
                     }
-                }
-            }
-            post {
-                success {
-                    jiraSendDeploymentInfo site: 'vku-k23', environmentId: 'stg-base', environmentName: 'stg-base', environmentType: 'staging'
-                }
-                failure {
-                    echo "Deployment failed, rollback if necessary."
                 }
             }
         }
