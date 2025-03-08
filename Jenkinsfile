@@ -108,14 +108,14 @@ pipeline {
                     echo "Deploying to server on branch: ${env.GIT_BRANCH}"
                     try {
                         sh """
-                            docker stop ${DOCKER_IMAGE_NAME} || true
-                            docker rm ${DOCKER_IMAGE_NAME} || true
+                            docker stop -f ${DOCKER_IMAGE_NAME} || true
+                            docker rm -f ${DOCKER_IMAGE_NAME} || true
 
                             docker images --format "{{.Repository}}:{{.ID}}" | awk -v img="${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}" '\$1 == img {print \$2}' | xargs -r docker rmi -f
 
                             docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
-                            mkdir -p ${env.WORKSPACE}/project && cd ${env.WORKSPACE}/project
+                            mkdir -p ${env.WORKSPACE} && cd ${env.WORKSPACE}
 
                             docker-compose up -d
                         """
