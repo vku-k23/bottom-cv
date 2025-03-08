@@ -7,7 +7,7 @@ import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Table(name = "jobs")
+@Table(name = "cvs")
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
