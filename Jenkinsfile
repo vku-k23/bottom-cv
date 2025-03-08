@@ -1,5 +1,3 @@
-// Pipeline script for CI/CD with Jenkins and Jira
-// by vietviet08
 pipeline {
     agent any
 
@@ -8,9 +6,6 @@ pipeline {
         DOCKER_REGISTRY = "vietquoc2408"
         DOCKER_IMAGE_NAME = "bottom-cv"
         DOCKER_TAG = "0.0.2"
-        SSH_CREDENTIALS_ID = "sg-server"
-        REMOTE_SERVER = "146.190.93.46"
-        REMOTE_USER = "root"
         REPO_URL = "https://github.com/vku-k23/bottom-cv"
         JIRA_EMAIL = credentials('jira-email')
         JIRA_API_TOKEN = credentials('jira-api-token')
@@ -45,7 +40,7 @@ pipeline {
         }
 
         stage('Update Jira Issue to In Progress') {
-             steps {
+            steps {
                 script {
                     def transitionId = "21"
 
@@ -63,26 +58,19 @@ pipeline {
                 }
             }
             post {
-                 always {
-                     jiraSendBuildInfo site: 'vku-k23'
-                 }
-             }
+                always {
+                    jiraSendBuildInfo site: 'vku-k23'
+                }
+            }
         }
 
         stage('Build Docker Image') {
-//             when {
-//                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
-//                 anyOf {
-//                     environment name: 'DEPLOY_TO', value: 'prod'
-//                     environment name: 'DEPLOY_TO', value: 'docker'
-//                 }
-//             }
-             when {
+            when {
                 anyOf {
                     branch 'docker'
                     branch 'prod'
                 }
-             }
+            }
             steps {
                 script {
                     sh "docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ."
@@ -91,19 +79,12 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-//             when {
-//                 expression { env.BRANCH_NAME ==~ /(prod|docker)/ }
-//                 anyOf {
-//                     environment name: 'DEPLOY_TO', value: 'prod'
-//                     environment name: 'DEPLOY_TO', value: 'docker'
-//                 }
-//             }
-             when {
+            when {
                 anyOf {
                     branch 'docker'
                     branch 'prod'
                 }
-             }
+            }
             steps {
                 script {
                     withCredentials([usernamePassword(
@@ -121,57 +102,53 @@ pipeline {
         }
 
         stage('Deploy to Server') {
-//             when {
-//                 expression { env.BRANCH_NAME == 'prod' }
-//             }
-             when {
+            when {
                 branch 'prod'
-             }
+            }
             steps {
                 script {
-                    sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-                        try {
-                            sh """
-                                ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER} << 'EOF'
-                                docker stop ${DOCKER_IMAGE_NAME} || true
-                                docker rm ${DOCKER_IMAGE_NAME} || true
+                    try {
+                        sh """
+                            docker stop ${DOCKER_IMAGE_NAME} || true
+                            docker rm ${DOCKER_IMAGE_NAME} || true
 
-                                docker images --format "{{.Repository}}:{{.ID}}" | awk -v img="${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}" '\$1 == img {print \$2}' | xargs -r docker rmi -f
+                            docker images --format "{{.Repository}}:{{.ID}}" | awk -v img="${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}" '\$1 == img {print \$2}' | xargs -r docker rmi -f
 
-                                docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
+                            docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
-                                mkdir -p project && cd project
+                            mkdir -p project && cd project
 
-                                docker-compose up -d
-EOF
-                            """
-                            echo "Deployment successful!"
-                            def transitionId = "31"
+                            docker-compose up -d
+                        """
+                        echo "Deployment successful!"
+                        def transitionId = "31"
 
-                            sh """
-                                curl -u ${JIRA_EMAIL}:${JIRA_API_TOKEN} -X POST \
-                                -H "Content-Type: application/json" \
-                                --data '{
-                                    "transition": {
-                                        "id": "${transitionId}"
-                                    }
-                                }' \
-                                "${JIRA_BASE_URL}/rest/api/3/issue/${env.ISSUE_KEY}/transitions"
-                            """
-                            echo "Updated issue ${env.ISSUE_KEY} to Done."
-                        } catch (Exception e) {
-                            echo "Deployment failed: ${e}"
-                            currentBuild.result = 'FAILURE'
-                            throw e
-                        }
+                        sh """
+                            curl -u ${JIRA_EMAIL}:${JIRA_API_TOKEN} -X POST \
+                            -H "Content-Type: application/json" \
+                            --data '{
+                                "transition": {
+                                    "id": "${transitionId}"
+                                }
+                            }' \
+                            "${JIRA_BASE_URL}/rest/api/3/issue/${env.ISSUE_KEY}/transitions"
+                        """
+                        echo "Updated issue ${env.ISSUE_KEY} to Done."
+                    } catch (Exception e) {
+                        echo "Deployment failed: ${e}"
+                        currentBuild.result = 'FAILURE'
+                        throw e
                     }
                 }
             }
-             post {
-                 always {
-                     jiraSendDeploymentInfo site: 'vku-k23', environmentId: 'stg-base', environmentName: 'stg-base', environmentType: 'staging'
-                 }
-             }
+            post {
+                success {
+                    jiraSendDeploymentInfo site: 'vku-k23', environmentId: 'stg-base', environmentName: 'stg-base', environmentType: 'staging'
+                }
+                failure {
+                    echo "Deployment failed, rollback if necessary."
+                }
+            }
         }
     }
 
