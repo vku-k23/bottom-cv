@@ -107,16 +107,16 @@ pipeline {
                     echo "Deploying to server on branch: ${env.GIT_BRANCH}"
                     try {
                         sh """
-                            sudo docker stop ${DOCKER_IMAGE_NAME} || true
-                            sudo docker rm ${DOCKER_IMAGE_NAME} || true
+                            docker stop ${DOCKER_IMAGE_NAME} || true
+                            docker rm ${DOCKER_IMAGE_NAME} || true
 
-                            sudo docker images --format "{{.Repository}}:{{.ID}}" | awk -v img="${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}" '\$1 == img {print \$2}' | xargs -r sudo docker rmi -f
+                            docker images --format "{{.Repository}}:{{.ID}}" | awk -v img="${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}" '\$1 == img {print \$2}' | xargs -r docker rmi -f
 
-                            sudo docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
+                            docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
-                            sudo mkdir -p /srv/project && cd /srv/project
+                            mkdir -p /srv/project && cd /srv/project
 
-                            sudo docker-compose up -d
+                            docker-compose up -d
                         """
                         echo "Deployment successful!"
                         def transitionId = "31"
