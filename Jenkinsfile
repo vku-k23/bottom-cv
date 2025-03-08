@@ -114,7 +114,7 @@ pipeline {
 
                             docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
 
-                            mkdir -p /srv/project && cd /srv/project
+                            mkdir -p ${env.WORKSPACE}/project && cd ${env.WORKSPACE}/project
 
                             docker-compose up -d
                         """
