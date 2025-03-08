@@ -1,4 +1,3 @@
-//vietviet08
 pipeline {
     agent any
 
