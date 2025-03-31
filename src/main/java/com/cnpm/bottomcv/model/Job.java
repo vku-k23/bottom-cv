@@ -17,7 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Job extends BaseEntity {
+public class Job extends BaseEntity {   
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
