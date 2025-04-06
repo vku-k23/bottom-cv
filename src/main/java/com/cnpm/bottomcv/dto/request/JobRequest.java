@@ -2,20 +2,14 @@ package com.cnpm.bottomcv.dto.request;
 
 import com.cnpm.bottomcv.constant.JobType;
 import com.cnpm.bottomcv.constant.StatusJob;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
+import java.util.Set;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
 public class JobRequest {
 
     @NotBlank(message = "Title is required")
@@ -30,17 +24,22 @@ public class JobRequest {
     @NotBlank(message = "Job benefit is required")
     private String jobBenefit;
 
+    @NotNull(message = "Job type is required")
     private JobType jobType;
 
+    @NotBlank(message = "Location is required")
     private String location;
 
     private String workTime;
 
     private Double salary;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime expiryDate;
 
     private StatusJob status;
 
+    @NotNull(message = "Company ID is required")
+    private Long companyId;
+
+    private Set<Long> categoryIds;
 }

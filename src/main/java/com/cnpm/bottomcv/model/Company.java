@@ -4,9 +4,7 @@ import com.cnpm.bottomcv.dto.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -53,9 +51,9 @@ public class Company extends BaseEntity {
 
     private Integer foundedYear;
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Job> jobs = new ArrayList<>();
+    @OneToMany(mappedBy = "company")
+    private Set<Job> jobs = new HashSet<>();
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Review> reviews = new ArrayList<>();
+    @OneToMany(mappedBy = "company")
+    private Set<Review> reviews = new HashSet<>();;
 }
