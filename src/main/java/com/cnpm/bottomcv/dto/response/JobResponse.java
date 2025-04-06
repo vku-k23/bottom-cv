@@ -1,48 +1,30 @@
 package com.cnpm.bottomcv.dto.response;
 
-
 import com.cnpm.bottomcv.constant.JobType;
 import com.cnpm.bottomcv.constant.StatusJob;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
 public class JobResponse {
 
     private Long id;
-
     private String title;
-
     private String jobDescription;
-
     private String jobRequirement;
-
     private String jobBenefit;
-
     private JobType jobType;
-
     private String location;
-
     private String workTime;
-
     private Double salary;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime expiryDate;
-
     private StatusJob status;
-
-    private List<CategoryResponse> categories;
+    private CompanyResponse company;
+    private Set<CategoryResponse> categories;
+    private LocalDateTime createdAt;
+    private String createdBy;
+    private LocalDateTime updatedAt;
+    private String updatedBy;
 }

@@ -7,15 +7,18 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CVResponse {
+public class ReviewResponse {
     private Long id;
-    private String title;
-    private String cvFile;
+    private String comment;
+    private Integer rating;
+    private Long companyId;
     private Long userId;
+    private Long jobId;
     private LocalDateTime createdAt;
     private String createdBy;
     private LocalDateTime updatedAt;
