@@ -1,25 +1,31 @@
 package com.cnpm.bottomcv.dto.request;
 
+import com.cnpm.bottomcv.constant.StatusJob;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class ApplyRequest {
 
-    @NotBlank(message = "User id is required")
+    @NotNull(message = "User ID is required")
     private Long userId;
 
-    @NotBlank(message = "Job id is required")
+    @NotNull(message = "Job ID is required")
     private Long jobId;
 
-    @NotBlank(message = "Cv id is required")
+    @NotNull(message = "CV ID is required")
     private Long cvId;
 
+    @NotNull(message = "Status is required")
+    private StatusJob status;
+
+    @NotBlank(message = "Message is required")
     private String message;
 }

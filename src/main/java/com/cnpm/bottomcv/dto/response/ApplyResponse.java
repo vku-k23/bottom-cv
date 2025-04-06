@@ -1,26 +1,26 @@
 package com.cnpm.bottomcv.dto.response;
 
 import com.cnpm.bottomcv.constant.StatusJob;
-import com.cnpm.bottomcv.model.CV;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class ApplyResponse {
     private Long id;
-
-    private UserResponse user;
-
-    private JobResponse job;
-
-    private CV cv;
-
+    private Long userId;
+    private Long jobId;
+    private Long cvId;
     private StatusJob status;
-
     private String message;
+    private LocalDateTime createdAt;
+    private String createdBy;
+    private LocalDateTime updatedAt;
+    private String updatedBy;
 }
