@@ -17,7 +17,7 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         if (roleRepository.count() == 0) {
             Role roleUser = Role.builder()
-                    .name(RoleType.USER)
+                    .name(RoleType.CANDIDATE)
                     .build();
 
             Role roleAdmin = Role.builder()

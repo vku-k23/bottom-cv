@@ -39,8 +39,8 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(registerUserDto.getPassword()))
                 .build();
 
-        Set<Role> roles = new HashSet<>(Collections.singleton(roleRepository.findByName(RoleType.USER)
-                .orElseThrow(() -> new RuntimeException("Role not found: " + RoleType.USER.name()))));
+        Set<Role> roles = new HashSet<>(Collections.singleton(roleRepository.findByName(RoleType.CANDIDATE)
+                .orElseThrow(() -> new RuntimeException("Role not found: " + RoleType.CANDIDATE.name()))));
         user.setRoles(roles);
 
         User savedUser = userRepository.save(user);
