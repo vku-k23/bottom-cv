@@ -1,6 +1,7 @@
 package com.cnpm.bottomcv.controller;
 
 import com.cnpm.bottomcv.dto.request.JobRequest;
+import com.cnpm.bottomcv.dto.request.JobSearchRequest;
 import com.cnpm.bottomcv.dto.response.JobResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.service.JobService;
@@ -33,13 +34,8 @@ public class JobController {
     }
 
     @GetMapping
-    public ResponseEntity<ListResponse<JobResponse>> getAllJobs(
-            @RequestParam(defaultValue = "0") int pageNo,
-            @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortType
-    ) {
-        return ResponseEntity.ok(jobService.getAllJobs(pageNo, pageSize, sortBy, sortType));
+    public ResponseEntity<ListResponse<JobResponse>> getAllJobs(@ModelAttribute JobSearchRequest jobSearchRequest) {
+        return ResponseEntity.ok(jobService.getAllJobs(jobSearchRequest));
     }
 
     @PutMapping("/{id}")

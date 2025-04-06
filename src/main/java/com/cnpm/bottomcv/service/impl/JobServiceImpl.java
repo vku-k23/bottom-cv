@@ -1,7 +1,9 @@
 package com.cnpm.bottomcv.service.impl;
 
 import com.cnpm.bottomcv.dto.request.JobRequest;
+import com.cnpm.bottomcv.dto.request.JobSearchRequest;
 import com.cnpm.bottomcv.dto.response.*;
+import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.Category;
 import com.cnpm.bottomcv.model.Company;
 import com.cnpm.bottomcv.model.Job;
@@ -9,11 +11,10 @@ import com.cnpm.bottomcv.repository.CategoryRepository;
 import com.cnpm.bottomcv.repository.CompanyRepository;
 import com.cnpm.bottomcv.repository.JobRepository;
 import com.cnpm.bottomcv.service.JobService;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -48,14 +49,61 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public ListResponse<JobResponse> getAllJobs(int pageNo, int pageSize, String sortBy, String sortType) {
-        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
-        Page<Job> pageJob = jobRepository.findAll(pageable);
+    public ListResponse<JobResponse> getAllJobs(JobSearchRequest jobSearchRequest) {
+        Specification<Job> spec = (root, query, cb) -> {
+            var predicates = new java.util.ArrayList<Predicate>();
+
+            if (jobSearchRequest.getKeyword() != null && !jobSearchRequest.getKeyword().isEmpty()) {
+                String keyword = "%" + jobSearchRequest.getKeyword().toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("title")), keyword),
+                        cb.like(cb.lower(root.get("jobDescription")), keyword)
+                ));
+            }
+
+            if (jobSearchRequest.getLocation() != null && !jobSearchRequest.getLocation().isEmpty()) {
+                predicates.add(cb.equal(root.get("location"), jobSearchRequest.getLocation()));
+            }
+
+            if (jobSearchRequest.getJobType() != null) {
+                predicates.add(cb.equal(root.get("jobType"), jobSearchRequest.getJobType()));
+            }
+
+            if (jobSearchRequest.getMinSalary() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("salary"), jobSearchRequest.getMinSalary()));
+            }
+
+            if (jobSearchRequest.getMaxSalary() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("salary"), jobSearchRequest.getMaxSalary()));
+            }
+
+            if (jobSearchRequest.getCategoryId() != null) {
+                predicates.add(cb.isMember(
+                        categoryRepository.findById(jobSearchRequest.getCategoryId())
+                                .orElseThrow(() -> new RuntimeException("Category not found")),
+                        root.get("categories")
+                ));
+            }
+
+            if (jobSearchRequest.getStatus() != null) {
+                predicates.add(cb.equal(root.get("status"), jobSearchRequest.getStatus()));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Sort sort = Sort.unsorted();
+        if (jobSearchRequest.getSortBy() != null && jobSearchRequest.getSortDirection() != null) {
+            sort = Sort.by(Sort.Direction.fromString(jobSearchRequest.getSortDirection()), jobSearchRequest.getSortBy());
+        }
+
+        Pageable pageable = PageRequest.of(jobSearchRequest.getPage(), jobSearchRequest.getSize(), sort);
+
+        Page<Job> pageJob = jobRepository.findAll(spec, pageable);
         List<Job> jobs = pageJob.getContent();
 
         return ListResponse.<JobResponse>builder()
-                .data(mapToJobListResponse(jobs))
+                .data(jobs.stream().map(this::mapToResponse).collect(Collectors.toList()))
                 .pageNo(pageJob.getNumber())
                 .pageSize(pageJob.getSize())
                 .totalElements((int) pageJob.getTotalElements())
@@ -64,16 +112,10 @@ public class JobServiceImpl implements JobService {
                 .build();
     }
 
-    private List<JobResponse> mapToJobListResponse(List<Job> jobs) {
-        return jobs.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList()).reversed();
-    }
-
     @Override
     public JobResponse updateJob(Long id, JobRequest request) {
         Job job = jobRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Job id", "id", id.toString()));
 
         mapRequestToEntity(job, request);
         job.setUpdatedAt(LocalDateTime.now());
@@ -85,7 +127,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public void deleteJob(Long id) {
         Job job = jobRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Job id", "id", id.toString()));
         jobRepository.delete(job);
     }
 
@@ -102,14 +144,14 @@ public class JobServiceImpl implements JobService {
         job.setStatus(request.getStatus());
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Company id", "id", request.getCompanyId().toString()));
         job.setCompany(company);
 
         if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
             Set<Category> categories = new HashSet<>();
             for (Long categoryId : request.getCategoryIds()) {
                 Category category = categoryRepository.findById(categoryId)
-                        .orElseThrow(() -> new RuntimeException("Category not found with ID: " + categoryId));
+                        .orElseThrow(() -> new ResourceNotFoundException("Category id", "id", categoryId.toString()));
                 categories.add(category);
             }
             job.setCategories(categories);
