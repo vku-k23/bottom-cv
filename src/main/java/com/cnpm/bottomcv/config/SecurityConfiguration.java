@@ -23,6 +23,10 @@ public class SecurityConfiguration {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**",
+                                "/api/front/jobs/**",
+                                "/api/front/reviews/**",
+                                "/api/front/companies/**",
+                                "/api/front/categories/**",
                                 "/api/info/**",
                                 "/actuator/**",
                                 "/webjars/**",
@@ -31,8 +35,19 @@ public class SecurityConfiguration {
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**").permitAll()
-                        .requestMatchers("/api/back/**").hasAnyRole( "ADMIN")
-                        .requestMatchers("/api/emp/**").hasAnyRole( "ADMIN", "EMPLOYER")
+                        .requestMatchers("/api/front/applies/**").hasRole("CANDIDATE")
+                        .requestMatchers("/api/front/cvs/**").hasRole("CANDIDATE")
+                        .requestMatchers("/api/front/users/**").hasAnyRole("CANDIDATE", "EMPLOYER")
+                        .requestMatchers("/api/front/notifications/**").hasAnyRole("CANDIDATE", "EMPLOYER")
+                        // Back APIs (dashboard)
+                        .requestMatchers("/api/back/jobs/**").hasAnyRole("EMPLOYER", "ADMIN")
+                        .requestMatchers("/api/back/applies/**").hasAnyRole("EMPLOYER", "ADMIN")
+                        .requestMatchers("/api/back/cvs/**").hasAnyRole("EMPLOYER", "ADMIN")
+                        .requestMatchers("/api/back/reviews/**").hasRole("ADMIN")
+                        .requestMatchers("/api/back/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/back/notifications/**").hasAnyRole("EMPLOYER", "ADMIN")
+                        .requestMatchers("/api/back/categories/**").hasRole("ADMIN")
+                        .requestMatchers("/api/back/companies/**").hasAnyRole("EMPLOYER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

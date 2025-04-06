@@ -35,7 +35,7 @@ public class ApplyServiceImpl implements ApplyService {
         Apply apply = new Apply();
         mapRequestToEntity(apply, request);
         apply.setCreatedAt(LocalDateTime.now());
-        apply.setCreatedBy("system"); // Replace with actual user
+        apply.setCreatedBy("system");
         applyRepository.save(apply);
         return mapToResponse(apply);
     }
@@ -77,7 +77,7 @@ public class ApplyServiceImpl implements ApplyService {
 
         mapRequestToEntity(apply, request);
         apply.setUpdatedAt(LocalDateTime.now());
-        apply.setUpdatedBy("system"); // Replace with actual user
+        apply.setUpdatedBy("system");
         applyRepository.save(apply);
         return mapToResponse(apply);
     }
