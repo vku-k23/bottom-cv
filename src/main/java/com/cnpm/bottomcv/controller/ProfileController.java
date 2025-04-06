@@ -23,7 +23,7 @@ public class ProfileController {
 
     private final ProfileService profileService;
 
-    @GetMapping("/profile")
+    @GetMapping("/front/profile")
     public ResponseEntity<User> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
@@ -32,7 +32,7 @@ public class ProfileController {
                 .body(currentUser);
     }
 
-    @PostMapping("/profile")
+    @PostMapping("/front/profile")
     public ResponseEntity<ProfileResponse> updateProfile(@Valid @RequestBody ProfileRequest profileRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
@@ -43,10 +43,10 @@ public class ProfileController {
 
     @GetMapping("/back/profile")
     public ResponseEntity<ListResponse<ProfileResponse>> getAllProfiles(
-            @RequestParam int pageNo,
-            @RequestParam int pageSize,
-            @RequestParam String sortBy,
-            @RequestParam String sortType
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortType
     ) {
         return ResponseEntity
                 .status(HttpStatus.OK)
