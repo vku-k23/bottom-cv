@@ -87,6 +87,9 @@ public class CVServiceImpl implements CVService {
         }
 
         cv.setTitle(request.getTitle());
+        cv.setSkills(request.getSkills());
+        cv.setContent(request.getContent());
+        cv.setExperience(request.getExperience());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         cv.setUser(user);
@@ -120,6 +123,9 @@ public class CVServiceImpl implements CVService {
         response.setTitle(cv.getTitle());
         response.setCvFile(cv.getCvFile());
         response.setUserId(cv.getUser().getId());
+        response.setSkills(cv.getSkills());
+        response.setContent(cv.getContent());
+        response.setExperience(cv.getExperience());
         response.setCreatedAt(cv.getCreatedAt());
         response.setCreatedBy(cv.getCreatedBy());
         response.setUpdatedAt(cv.getUpdatedAt());

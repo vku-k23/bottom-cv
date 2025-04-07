@@ -26,4 +26,10 @@ public class CV extends BaseEntity {
     private User user;
 
     private StatusJob status = StatusJob.ACTIVE;
+
+    private String skills;
+
+    private String experience;
+
+    private String content;
 }
