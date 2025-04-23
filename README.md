@@ -1,3 +1,5 @@
+![Architecture system](assets/diagram-export-4-23-2025-8_37_58-AM.png)
+**Architecture system**
 # System Overview
 - Purpose: Job search platform allowing users (employers/recruiters) to search, post, and apply for jobs.
 - Main Functions: Job posting, job searching, application submissions, user authentication, file uploads for images/resumes.
