@@ -20,6 +20,12 @@ spring:
       secret-key: 6819f2332c05808fe53aecb57ed47111c90201b33f4ada050666331b62977451dc6eda5ff4f371106b882c08421c672ea5d2689451abeccc333a4f92365e6389
       expirationMs: 900000 # 1 hour
       refreshExpirationMs: 604800000 # 7 days
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
 
 springdoc:
   api-docs:

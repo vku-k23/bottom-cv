@@ -16,6 +16,9 @@ public class CVResponse {
     private String title;
     private String cvFile;
     private Long userId;
+    private String skills;
+    private String experience;
+    private String content;
     private LocalDateTime createdAt;
     private String createdBy;
     private LocalDateTime updatedAt;

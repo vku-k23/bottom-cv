@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @Tag(name = "Job API", description = "The API of job")
 @RestController
 @RequestMapping(value = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -68,6 +70,24 @@ public class JobController {
     @GetMapping("/front/jobs")
     public ResponseEntity<ListResponse<JobResponse>> getAllJobsForFront(@ModelAttribute JobSearchRequest request) {
         ListResponse<JobResponse> response = jobService.getAllJobs(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/front/jobs/recommended/request")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    public ResponseEntity<String> requestRecommendedJobs(@RequestParam Long userId) {
+        jobService.requestRecommendation(userId);
+        return ResponseEntity.ok("Recommendation request submitted for user: " + userId);
+    }
+
+    @GetMapping("/front/jobs/recommended/result")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    public ResponseEntity<ListResponse<JobResponse>> getRecommendedJobs(
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) throws IOException {
+        ListResponse<JobResponse> response = jobService.getRecommendedJobs(userId, pageNo, pageSize);
         return ResponseEntity.ok(response);
     }
 }

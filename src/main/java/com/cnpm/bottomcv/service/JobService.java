@@ -5,6 +5,8 @@ import com.cnpm.bottomcv.dto.request.JobSearchRequest;
 import com.cnpm.bottomcv.dto.response.JobResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 
+import java.io.IOException;
+
 public interface JobService {
     JobResponse createJob(JobRequest request);
 
@@ -15,4 +17,8 @@ public interface JobService {
     JobResponse updateJob(Long id, JobRequest request);
 
     void deleteJob(Long id);
+
+    void requestRecommendation(Long userId);
+
+    ListResponse<JobResponse> getRecommendedJobs(Long userId, int pageNo, int pageSize) throws IOException;
 }

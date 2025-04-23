@@ -1,22 +1,34 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.ai.TFIDFVectorizer;
+import com.cnpm.bottomcv.config.RabbitMQConfig;
 import com.cnpm.bottomcv.dto.request.JobRequest;
 import com.cnpm.bottomcv.dto.request.JobSearchRequest;
-import com.cnpm.bottomcv.dto.response.*;
+import com.cnpm.bottomcv.dto.response.CategoryResponse;
+import com.cnpm.bottomcv.dto.response.CompanyResponse;
+import com.cnpm.bottomcv.dto.response.JobResponse;
+import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.exception.ResourceNotFoundException;
-import com.cnpm.bottomcv.model.Category;
-import com.cnpm.bottomcv.model.Company;
-import com.cnpm.bottomcv.model.Job;
-import com.cnpm.bottomcv.repository.CategoryRepository;
-import com.cnpm.bottomcv.repository.CompanyRepository;
-import com.cnpm.bottomcv.repository.JobRepository;
+import com.cnpm.bottomcv.model.*;
+import com.cnpm.bottomcv.model.ai.Recommendation;
+import com.cnpm.bottomcv.repository.*;
+import com.cnpm.bottomcv.repository.ai.RecommendationRepository;
 import com.cnpm.bottomcv.service.JobService;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.util.ModelSerializer;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.shade.jackson.databind.ObjectMapper;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +42,72 @@ public class JobServiceImpl implements JobService {
     private final JobRepository jobRepository;
     private final CompanyRepository companyRepository;
     private final CategoryRepository categoryRepository;
+    private final CVRepository cvRepository;
+    private final UserRepository userRepository;
+    private final TFIDFVectorizer tfidfVectorizer;
+    private MultiLayerNetwork recommendationModel;
+    private final RabbitTemplate rabbitTemplate;
+    private final RecommendationRepository recommendationRepository;
+
+    @PostConstruct
+    public void init() throws Exception {
+        // Tải mô hình đã huấn luyện
+        File modelFile = new File("recommendation-model.zip");
+        if (modelFile.exists()) {
+            recommendationModel = ModelSerializer.restoreMultiLayerNetwork(modelFile);
+        } else {
+            throw new RuntimeException("Recommendation model not found!");
+        }
+
+        // Xây dựng chỉ mục TF-IDF khi khởi động
+        tfidfVectorizer.buildIndex(userRepository.findAll(), jobRepository.findAll());
+    }
+
+    @Override
+    public void requestRecommendation(Long userId) {
+        rabbitTemplate.convertAndSend(RabbitMQConfig.RECOMMENDATION_QUEUE, userId);
+    }
+
+    public void processRecommendation(Long userId) throws Exception {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User id", "id", userId.toString()));
+
+        // Trích xuất đặc trưng người dùng
+        int featureSize = tfidfVectorizer.getFeatureSize();
+        double[] userFeatures = extractUserFeatures(user);
+        INDArray userInput = Nd4j.create(userFeatures);
+
+        // Dự đoán điểm số cho từng công việc
+        List<Job> allJobs = jobRepository.findAll();
+        List<JobScore> jobScores = allJobs.stream().map(job -> {
+                    try {
+                        double[] jobFeatures = extractJobFeatures(job);
+                        INDArray jobInput = Nd4j.create(jobFeatures);
+                        INDArray combinedInput = Nd4j.hstack(userInput, jobInput);
+                        INDArray output = recommendationModel.output(combinedInput);
+                        return new JobScore(job, output.getDouble(0));
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error extracting job features", e);
+                    }
+                }).sorted((a, b) -> Double.compare(b.getScore(), a.getScore()))
+                .collect(Collectors.toList());
+
+        // Lấy top 10 công việc gợi ý
+        List<Long> recommendedJobIds = jobScores.stream()
+                .limit(10)
+                .map(jobScore -> jobScore.getJob().getId())
+                .collect(Collectors.toList());
+
+        // Lưu kết quả gợi ý vào cơ sở dữ liệu
+        Recommendation recommendation = recommendationRepository.findByUserId(userId);
+        if (recommendation == null) {
+            recommendation = new Recommendation();
+            recommendation.setUserId(userId);
+        }
+        recommendation.setJobIds(new ObjectMapper().writeValueAsString(recommendedJobIds));
+        recommendation.setCreatedAt(LocalDateTime.now());
+        recommendationRepository.save(recommendation);
+    }
 
     @Override
     public JobResponse createJob(JobRequest request) {
@@ -131,6 +209,76 @@ public class JobServiceImpl implements JobService {
         jobRepository.delete(job);
     }
 
+    @Override
+    public ListResponse<JobResponse> getRecommendedJobs(Long userId, int pageNo, int pageSize) throws IOException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User id", "id", userId.toString()));
+
+        // Trích xuất đặc trưng người dùng
+        int featureSize = tfidfVectorizer.getFeatureSize();
+        double[] userFeatures = extractUserFeatures(user);
+        INDArray userInput = Nd4j.create(userFeatures);
+
+        // Dự đoán điểm số cho từng công việc
+        List<Job> allJobs = jobRepository.findAll();
+        List<JobScore> jobScores = allJobs.stream().map(job -> {
+                    try {
+                        double[] jobFeatures = extractJobFeatures(job);
+                        INDArray jobInput = Nd4j.create(jobFeatures);
+                        INDArray combinedInput = Nd4j.hstack(userInput, jobInput);
+                        INDArray output = recommendationModel.output(combinedInput);
+                        return new JobScore(job, output.getDouble(0));
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error extracting job features", e);
+                    }
+                }).sorted((a, b) -> Double.compare(b.getScore(), a.getScore()))
+                .toList();
+
+        // Phân trang
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), jobScores.size());
+        List<Job> recommendedJobs = jobScores.subList(start, end).stream()
+                .map(JobScore::getJob)
+                .collect(Collectors.toList());
+
+        Page<Job> jobPage = new PageImpl<>(recommendedJobs, pageable, jobScores.size());
+        List<JobResponse> jobResponses = jobPage.getContent().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+        return ListResponse.<JobResponse>builder()
+                .data(jobResponses)
+                .pageNo(jobPage.getNumber())
+                .pageSize(jobPage.getSize())
+                .totalElements((int) jobPage.getTotalElements())
+                .totalPages(jobPage.getTotalPages())
+                .isLast(jobPage.isLast())
+                .build();
+    }
+
+    private double[] extractCVFeatures(CV cv) throws IOException {
+        String cvText = (cv.getSkills() != null ? cv.getSkills() : "") + " " + (cv.getExperience() != null ? cv.getExperience() : "");
+        return tfidfVectorizer.vectorize(cvText);
+    }
+
+    private double[] extractUserFeatures(User user) throws IOException {
+        // Lấy CV của người dùng
+        List<CV> cvs = cvRepository.findByUserId(user.getId());
+        if (cvs.isEmpty()) {
+            throw new RuntimeException("No CV found for user: " + user.getId());
+        }
+
+        // Chọn CV đầu tiên (có thể thay đổi logic để chọn CV mới nhất hoặc CV chính)
+        CV cv = cvs.get(0);
+        return extractCVFeatures(cv);
+    }
+
+    private double[] extractJobFeatures(Job job) throws IOException {
+        String jobText = job.getJobDescription() + " " + job.getJobRequirement();
+        return tfidfVectorizer.vectorize(jobText);
+    }
+
     private void mapRequestToEntity(Job job, JobRequest request) {
         job.setTitle(request.getTitle());
         job.setJobDescription(request.getJobDescription());
@@ -212,5 +360,23 @@ public class JobServiceImpl implements JobService {
         categoryResponse.setSlug(category.getSlug());
         categoryResponse.setDescription(category.getDescription());
         return categoryResponse;
+    }
+}
+
+class JobScore {
+    private Job job;
+    private double score;
+
+    public JobScore(Job job, double score) {
+        this.job = job;
+        this.score = score;
+    }
+
+    public Job getJob() {
+        return job;
+    }
+
+    public double getScore() {
+        return score;
     }
 }

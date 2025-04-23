@@ -24,4 +24,13 @@ public class CVRequest {
     @NotNull(message = "CV file is required")
     @ValidFile(allowedTypes = {"application/pdf"}, maxSize = 5 * 1024 * 1024, message = "CV file must be a PDF and less than 5MB")
     private MultipartFile cvFile;
+
+    @NotBlank(message = "Skills is required")
+    private String skills;
+
+    @NotBlank(message = "Experience is required")
+    private String experience;
+
+    @NotBlank(message = "Content is required")
+    private String content;
 }
