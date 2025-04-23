@@ -17,6 +17,7 @@ import com.cnpm.bottomcv.service.JobService;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JobServiceImpl implements JobService {
 
     private final JobRepository jobRepository;
@@ -48,27 +50,50 @@ public class JobServiceImpl implements JobService {
     private MultiLayerNetwork recommendationModel;
     private final RabbitTemplate rabbitTemplate;
     private final RecommendationRepository recommendationRepository;
+    private boolean modelAvailable = false;
 
     @PostConstruct
     public void init() throws Exception {
-        // Tải mô hình đã huấn luyện
-        File modelFile = new File("recommendation-model.zip");
-        if (modelFile.exists()) {
-            recommendationModel = ModelSerializer.restoreMultiLayerNetwork(modelFile);
-        } else {
-            throw new RuntimeException("Recommendation model not found!");
+        // Try to load the trained model
+        try {
+            File modelFile = new File("recommendation-model.zip");
+            if (modelFile.exists()) {
+                recommendationModel = ModelSerializer.restoreMultiLayerNetwork(modelFile);
+                modelAvailable = true;
+                log.info("Recommendation model loaded successfully");
+            } else {
+                log.warn("Recommendation model not found. Recommendation features will be disabled.");
+                modelAvailable = false;
+            }
+        } catch (Exception e) {
+            log.error("Failed to load recommendation model: {}", e.getMessage());
+            modelAvailable = false;
         }
 
-        // Xây dựng chỉ mục TF-IDF khi khởi động
-        tfidfVectorizer.buildIndex(userRepository.findAll(), jobRepository.findAll());
+        // Build TF-IDF index on startup if possible
+        try {
+            tfidfVectorizer.buildIndex(userRepository.findAll(), jobRepository.findAll());
+            log.info("TF-IDF index built successfully");
+        } catch (Exception e) {
+            log.error("Failed to build TF-IDF index: {}", e.getMessage());
+        }
     }
 
     @Override
     public void requestRecommendation(Long userId) {
+        if (!modelAvailable) {
+            log.warn("Recommendation model not available. Cannot process recommendation request for user {}", userId);
+            return;
+        }
         rabbitTemplate.convertAndSend(RabbitMQConfig.RECOMMENDATION_QUEUE, userId);
     }
 
     public void processRecommendation(Long userId) throws Exception {
+        if (!modelAvailable) {
+            log.warn("Recommendation model not available. Cannot process recommendation for user {}", userId);
+            return;
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User id", "id", userId.toString()));
 
@@ -211,6 +236,15 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public ListResponse<JobResponse> getRecommendedJobs(Long userId, int pageNo, int pageSize) throws IOException {
+        if (!modelAvailable) {
+            log.warn("Recommendation model not available. Returning regular jobs instead.");
+            // Fall back to returning regular jobs when recommendation model isn't available
+            JobSearchRequest defaultSearchRequest = new JobSearchRequest();
+            defaultSearchRequest.setPage(pageNo);
+            defaultSearchRequest.setSize(pageSize);
+            return getAllJobs(defaultSearchRequest);
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User id", "id", userId.toString()));
 
