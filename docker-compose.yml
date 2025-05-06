@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
 
-# existing mysql service on server
+  # existing mysql service on server
   # mysql:
   #   image: mysql:8
   #   container_name: bottom-cv-mysql
@@ -42,7 +42,6 @@ services:
 # volumes:
 #   mysql_data:
 
-#change to your own network name
 networks:
   cinevibe-network:
     driver: bridge
