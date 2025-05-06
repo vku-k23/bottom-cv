@@ -116,7 +116,7 @@ pipeline {
 
                             mkdir -p ${env.WORKSPACE} && cd ${env.WORKSPACE}
 
-                            docker-compose up -d
+                            docker compose up -d
                         """
                         echo "Deployment successful!"
                         def transitionId = "31"
