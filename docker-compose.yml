@@ -42,6 +42,7 @@ services:
 # volumes:
 #   mysql_data:
 
+#change to your own network name
 networks:
   cinevibe-network:
     driver: bridge
