@@ -1,44 +1,46 @@
 version: "3.9"
 
 services:
-  mysql:
-    image: mysql:9.2
-    container_name: bottom-cv-mysql
-    restart: always
-    ports:
-      - "3307:3306"
-    environment:
-      MYSQL_DATABASE: bottom_cv
-      MYSQL_ROOT_PASSWORD: root
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 10s
-      retries: 10
-    networks:
-      - bottom-cv-network
+
+# existing mysql service on server
+  # mysql:
+  #   image: mysql:8
+  #   container_name: bottom-cv-mysql
+  #   restart: always
+  #   ports:
+  #     - "3306:3306"
+  #   environment:
+  #     MYSQL_DATABASE: bottom_cv
+  #     MYSQL_ROOT_PASSWORD: root
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+  #     interval: 5s
+  #     timeout: 10s
+  #     retries: 10
+  #   networks:
+  #     - bottom-cv-network
 
   bottom-cv:
-    image: vietquoc2408/bottom-cv:0.0.2
+    image: vietquoc2408/bottom-cv:0.0.2-beta
     container_name: bottom-cv
     restart: always
     ports:
       - "8088:8088"
-    depends_on:
-      mysql:
-        condition: service_healthy
+    # depends_on:
+    #   mysql:
+    #     condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bottom_cv
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bottom_cv?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
       SERVER_PORT: 8088
     networks:
       - bottom-cv-network
 
-volumes:
-  mysql_data:
+# volumes:
+#   mysql_data:
 
 networks:
   bottom-cv-network:
