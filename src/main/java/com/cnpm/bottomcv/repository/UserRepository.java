@@ -1,8 +1,6 @@
 package com.cnpm.bottomcv.repository;
 
-import com.cnpm.bottomcv.constant.RoleType;
 import com.cnpm.bottomcv.model.User;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;

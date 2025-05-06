@@ -5,7 +5,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-account')
         DOCKER_REGISTRY = "vietquoc2408"
         DOCKER_IMAGE_NAME = "bottom-cv"
-        DOCKER_TAG = "0.0.2"
+        DOCKER_TAG = "0.0.2-beta"
         REPO_URL = "https://github.com/vku-k23/bottom-cv"
         JIRA_EMAIL = credentials('jira-email')
         JIRA_API_TOKEN = credentials('jira-api-token')
