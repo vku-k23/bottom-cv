@@ -2,7 +2,7 @@ spring:
   application:
     name: bottom-cv
   datasource:
-    url: jdbc:mysql://localhost:3306/bottom_cv?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3307/bottom_cv?createDatabaseIfNotExist=true
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
