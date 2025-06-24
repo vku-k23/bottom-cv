@@ -78,7 +78,7 @@ public class JobServiceImpl implements JobService {
             log.error("Failed to build TF-IDF index: {}", e.getMessage());
         }
     }
-
+    
     @Override
     public void requestRecommendation(Long userId) {
         if (!modelAvailable) {
