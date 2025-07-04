@@ -3,6 +3,7 @@ package com.cnpm.bottomcv.dto.request;
 import com.cnpm.bottomcv.constant.StatusJob;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,5 +28,6 @@ public class ApplyRequest {
     private StatusJob status;
 
     @NotBlank(message = "Message is required")
+    @Size(max = 500, message = "Message must be less than 500 characters")
     private String message;
 }

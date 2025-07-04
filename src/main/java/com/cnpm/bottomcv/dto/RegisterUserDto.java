@@ -1,9 +1,7 @@
 package com.cnpm.bottomcv.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import com.cnpm.bottomcv.validation.PastDateOfBirth.PastDateOfBirth;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +17,9 @@ public class RegisterUserDto {
     private String username;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$",
+             message = "Password must contain like Az0@1 and be at least 6 characters long")
+    @Size(min = 4, max = 50, message = "Password must be at least 6 characters")
     private String password;
 
     @NotBlank(message = "Email is required")
@@ -31,18 +31,19 @@ public class RegisterUserDto {
     private String phoneNumber;
 
     @NotBlank(message = "First name is required")
+    @Size(min = 3, max = 25, message = "First name must between 3 and 25 character")
     private String firstName;
 
     @NotBlank(message = "Last name is required")
+    @Size(min = 3, max = 25, message = "Last name must between 3 and 25 character")
     private String lastName;
 
     @NotBlank(message = "Date of birth is required")
+    @PastDateOfBirth(message = "Date of birth must be in the past")
     private String dayOfBirth;
 
     @NotBlank(message = "Address is required")
+    @Size(max = 255, message = "Address must be less than 255 characters")
     private String address;
 
-    private String avatar;
-
-    private String description;
 }
