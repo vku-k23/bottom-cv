@@ -1,4 +1,4 @@
-package com.cnpm.bottomcv.validation;
+package com.cnpm.bottomcv.validation.File;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

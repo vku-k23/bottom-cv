@@ -1,6 +1,7 @@
 package com.cnpm.bottomcv.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +18,7 @@ public class CategoryRequest {
 
     private String slug;
 
+    @Size(max = 255, message = "Description must be less than 255 characters")
     private String description;
 
 }

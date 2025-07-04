@@ -50,8 +50,6 @@ public class AuthenticationService {
                 .lastName(registerUserDto.getLastName())
                 .dayOfBirth(LocalDateTime.parse(registerUserDto.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")))
                 .address(registerUserDto.getAddress())
-                .avatar(registerUserDto.getAvatar())
-                .description(registerUserDto.getDescription())
                 .user(savedUser)
                 .build();
 

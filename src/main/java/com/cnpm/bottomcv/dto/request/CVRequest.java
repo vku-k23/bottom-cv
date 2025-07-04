@@ -1,6 +1,6 @@
 package com.cnpm.bottomcv.dto.request;
 
-import com.cnpm.bottomcv.validation.ValidFile;
+import com.cnpm.bottomcv.validation.File.ValidFile;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
