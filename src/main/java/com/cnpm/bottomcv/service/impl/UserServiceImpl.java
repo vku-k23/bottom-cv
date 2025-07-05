@@ -81,7 +81,7 @@ public class UserServiceImpl implements UserService {
         Profile profile = Profile.builder()
                 .firstName(userRequest.getFirstName())
                 .lastName(userRequest.getLastName())
-                .dayOfBirth(LocalDateTime.parse(userRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")))
+                .dayOfBirth(LocalDateTime.parse(userRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")))
                 .address(userRequest.getAddress())
                 .phoneNumber(userRequest.getPhoneNumber())
                 .email(userRequest.getEmail())
@@ -122,7 +122,7 @@ public class UserServiceImpl implements UserService {
         Profile profile = user.getProfile();
         profile.setFirstName(userRequest.getFirstName());
         profile.setLastName(userRequest.getLastName());
-        profile.setDayOfBirth(LocalDateTime.parse(userRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")));
+        profile.setDayOfBirth(LocalDateTime.parse(userRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")));
         profile.setAddress(userRequest.getAddress());
         profile.setPhoneNumber(userRequest.getPhoneNumber());
         profile.setDescription(userRequest.getDescription());

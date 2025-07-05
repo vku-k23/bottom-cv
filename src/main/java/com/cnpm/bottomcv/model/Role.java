@@ -9,7 +9,7 @@ import lombok.*;
 import java.util.HashSet;
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = {"users"})
 @Data
 @Table(name = "roles")
 @Entity
@@ -27,5 +27,7 @@ public class Role extends BaseEntity {
 
     @ManyToMany(mappedBy = "roles")
     @JsonBackReference
+    @ToString.Exclude
+    @Builder.Default
     private Set<User> users = new HashSet<>();
 }

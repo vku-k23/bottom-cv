@@ -40,7 +40,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
         ),
         externalDocs = @ExternalDocumentation(
                 description = "Bottom CV REST API Documentation",
-                url = "https://localhost:8080/swagger-ui.html"
+                url = "https://localhost:8088/swagger-ui.html"
         )
 )
 public class BottomCvApplication {

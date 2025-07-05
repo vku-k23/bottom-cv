@@ -1,6 +1,5 @@
 package com.cnpm.bottomcv.service.jwt;
 
-import com.cnpm.bottomcv.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

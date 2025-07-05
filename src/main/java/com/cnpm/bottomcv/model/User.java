@@ -40,6 +40,7 @@ public class User extends BaseEntity implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     @JsonManagedReference
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -51,6 +52,7 @@ public class User extends BaseEntity implements UserDetails {
     private Company company;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<CV> cvs = new ArrayList<>();
 
     @Override

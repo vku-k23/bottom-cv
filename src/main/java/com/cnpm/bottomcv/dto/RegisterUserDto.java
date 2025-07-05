@@ -42,8 +42,4 @@ public class RegisterUserDto {
     @PastDateOfBirth(message = "Date of birth must be in the past")
     private String dayOfBirth;
 
-    @NotBlank(message = "Address is required")
-    @Size(max = 255, message = "Address must be less than 255 characters")
-    private String address;
-
 }
