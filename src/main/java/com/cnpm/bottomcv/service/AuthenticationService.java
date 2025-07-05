@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,8 +47,7 @@ public class AuthenticationService {
         Profile profile = Profile.builder()
                 .firstName(registerUserDto.getFirstName())
                 .lastName(registerUserDto.getLastName())
-                .dayOfBirth(LocalDateTime.parse(registerUserDto.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")))
-                .address(registerUserDto.getAddress())
+                .dayOfBirth(LocalDateTime.parse(registerUserDto.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")))
                 .user(savedUser)
                 .build();
 

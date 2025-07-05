@@ -3,7 +3,8 @@ package com.cnpm.bottomcv.validation.PastDateOfBirth;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 public class PastDateOfBirthValidator implements ConstraintValidator<PastDateOfBirth, String> {
@@ -13,8 +14,8 @@ public class PastDateOfBirthValidator implements ConstraintValidator<PastDateOfB
             return true;
         }
         try {
-            LocalDate dob = LocalDate.parse(dobString);
-            return dob.isBefore(LocalDate.now());
+            LocalDateTime dob = LocalDateTime.parse(dobString, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+            return dob.isBefore(LocalDateTime.now());
         } catch (DateTimeParseException e) {
             return false;
         }

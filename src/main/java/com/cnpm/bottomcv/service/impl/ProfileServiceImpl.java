@@ -54,7 +54,7 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = Profile.builder()
                 .firstName(profileRequest.getFirstName())
                 .lastName(profileRequest.getLastName())
-                .dayOfBirth(LocalDateTime.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")))
+                .dayOfBirth(LocalDateTime.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")))
                 .address(profileRequest.getAddress())
                 .phoneNumber(profileRequest.getPhoneNumber())
                 .email(profileRequest.getEmail())
@@ -71,7 +71,7 @@ public class ProfileServiceImpl implements ProfileService {
 
         profile.setFirstName(profileRequest.getFirstName());
         profile.setLastName(profileRequest.getLastName());
-        profile.setDayOfBirth(LocalDateTime.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")));
+        profile.setDayOfBirth(LocalDateTime.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")));
         profile.setAddress(profileRequest.getAddress());
         profile.setPhoneNumber(profileRequest.getPhoneNumber());
         profile.setEmail(profileRequest.getEmail());
