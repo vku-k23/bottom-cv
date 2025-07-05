@@ -1,6 +1,5 @@
 package com.cnpm.bottomcv.validation.InvalidWords;
 
-import com.cnpm.bottomcv.validation.PastDateOfBirth.PastDateOfBirthValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -11,7 +10,7 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = PastDateOfBirthValidator.class)
+@Constraint(validatedBy = InvalidWordsValidator.class)
 public @interface InvalidWords {
     String message() default "Your language violates the rules of the system";
     Class<?>[] groups() default {};
