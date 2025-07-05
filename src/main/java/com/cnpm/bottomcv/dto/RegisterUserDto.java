@@ -1,11 +1,14 @@
 package com.cnpm.bottomcv.dto;
 
 import com.cnpm.bottomcv.validation.PastDateOfBirth.PastDateOfBirth;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -39,7 +42,8 @@ public class RegisterUserDto {
     private String lastName;
 
     @NotBlank(message = "Date of birth is required")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @PastDateOfBirth(message = "Date of birth must be in the past")
-    private String dayOfBirth;
+    private LocalDateTime dayOfBirth;
 
 }

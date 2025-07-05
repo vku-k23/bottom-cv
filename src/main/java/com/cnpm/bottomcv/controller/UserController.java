@@ -1,6 +1,7 @@
 package com.cnpm.bottomcv.controller;
 
 import com.cnpm.bottomcv.dto.request.UserRequest;
+import com.cnpm.bottomcv.dto.response.ApiResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.UserResponse;
 import com.cnpm.bottomcv.service.UserService;
@@ -19,16 +20,19 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/")
-    public ResponseEntity<ListResponse<UserResponse>> allUsers(
-            @RequestParam(required = false) int pageNo,
-            @RequestParam(required = false) int pageSize,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false) String sortType
+    public ResponseEntity<ApiResponse<ListResponse<UserResponse>>> allUsers(
+            @RequestParam(required = false, defaultValue = "0") int pageNo,
+            @RequestParam(required = false, defaultValue = "10") int pageSize,
+            @RequestParam(required = false, defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String sortType
     ) {
         ListResponse<UserResponse> users = userService.allUsers(pageNo, pageSize, sortBy, sortType);
+
+        ApiResponse<ListResponse<UserResponse>> response = ApiResponse.success("List of users retrieved successfully", users);
+
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(users);
+                .body(response);
     }
 
     @GetMapping("/{id}")

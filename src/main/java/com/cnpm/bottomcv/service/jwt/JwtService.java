@@ -60,13 +60,21 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(Date.from(Instant.now()))
                 .setExpiration(Date.from(Instant.now().plusMillis(expiration)))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS512)
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+//        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        boolean isUsernameValid = username.equals(userDetails.getUsername());
+        boolean isTokenNotExpired = !isTokenExpired(token);
+
+        logger.info("Token validation - Username match: " + isUsernameValid + ", Token not expired: " + isTokenNotExpired);
+        logger.info("Token username: " + username + ", UserDetails username: " + userDetails.getUsername());
+        logger.info("User authorities: " + userDetails.getAuthorities());
+
+        return isUsernameValid && isTokenNotExpired;
     }
 
     private boolean isTokenExpired(String token) {
@@ -104,7 +112,13 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+            return Keys.hmacShaKeyFor(keyBytes);
+        } catch (Exception e) {
+            logger.warning("Using fallback key creation method: " + e.getMessage());
+            String fallbackSecret = secretKey + secretKey + secretKey + secretKey;
+            return Keys.hmacShaKeyFor(fallbackSecret.getBytes());
+        }
     }
 }

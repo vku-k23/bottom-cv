@@ -3,7 +3,6 @@ package com.cnpm.bottomcv.validation.InvalidWords;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class InvalidWordsValidator implements ConstraintValidator<InvalidWords, Object> {

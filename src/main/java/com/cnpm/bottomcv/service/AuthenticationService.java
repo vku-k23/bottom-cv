@@ -47,7 +47,9 @@ public class AuthenticationService {
         Profile profile = Profile.builder()
                 .firstName(registerUserDto.getFirstName())
                 .lastName(registerUserDto.getLastName())
-                .dayOfBirth(LocalDateTime.parse(registerUserDto.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")))
+                .email(registerUserDto.getEmail())
+                .phoneNumber(registerUserDto.getPhoneNumber())
+                .dayOfBirth(registerUserDto.getDayOfBirth())
                 .user(savedUser)
                 .build();
 
