@@ -1,0 +1,91 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1754583902133-9
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: email
+            constraintName: uc_profiles_email
+            tableName: profiles
+  - changeSet:
+      id: 1754583902133-1
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addNotNullConstraint:
+            columnDataType: VARCHAR(255)
+            columnName: first_name
+            tableName: profiles
+            validate: true
+  - changeSet:
+      id: 1754583902133-2
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropColumn:
+            columnName: job_type
+            tableName: jobs
+        - dropColumn:
+            columnName: status
+            tableName: jobs
+  - changeSet:
+      id: 1754583902133-3
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    validateNullable: true
+                  name: job_type
+                  type: VARCHAR(255)
+            tableName: jobs
+  - changeSet:
+      id: 1754583902133-4
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addNotNullConstraint:
+            columnDataType: VARCHAR(255)
+            columnName: last_name
+            tableName: profiles
+            validate: true
+  - changeSet:
+      id: 1754583902133-5
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropColumn:
+            columnName: name
+            tableName: roles
+  - changeSet:
+      id: 1754583902133-6
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uc_roles_name
+                    validateNullable: true
+                  name: name
+                  type: VARCHAR(255)
+            tableName: roles
+  - changeSet:
+      id: 1754583902133-8
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: status
+                  type: VARCHAR(255)
+            tableName: jobs
+

@@ -21,8 +21,10 @@ public class Profile extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
+    @Column(nullable = false)
     private String lastName;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
@@ -32,6 +34,7 @@ public class Profile extends BaseEntity {
 
     private String phoneNumber;
 
+    @Column(unique = true)
     private String email;
 
     private String avatar;

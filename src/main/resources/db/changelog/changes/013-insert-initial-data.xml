@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="013-insert-initial-data" author="vietquoc">
+        <!-- Insert default roles -->
+        <insert tableName="roles">
+            <column name="name" value="ADMIN"/>
+            <column name="created_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_modified_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" value="system"/>
+            <column name="last_modified_by" value="system"/>
+        </insert>
+
+        <insert tableName="roles">
+            <column name="name" value="USER"/>
+            <column name="created_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_modified_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" value="system"/>
+            <column name="last_modified_by" value="system"/>
+        </insert>
+
+        <insert tableName="roles">
+            <column name="name" value="EMPLOYER"/>
+            <column name="created_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_modified_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" value="system"/>
+            <column name="last_modified_by" value="system"/>
+        </insert>
+
+        <!-- Insert default categories -->
+        <insert tableName="categories">
+            <column name="name" value="Information Technology"/>
+            <column name="slug" value="information-technology"/>
+            <column name="description" value="IT related jobs including software development, system administration, etc."/>
+            <column name="created_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_modified_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" value="system"/>
+            <column name="last_modified_by" value="system"/>
+        </insert>
+
+        <insert tableName="categories">
+            <column name="name" value="Marketing"/>
+            <column name="slug" value="marketing"/>
+            <column name="description" value="Marketing, advertising, and sales related positions"/>
+            <column name="created_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_modified_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" value="system"/>
+            <column name="last_modified_by" value="system"/>
+        </insert>
+
+        <insert tableName="categories">
+            <column name="name" value="Finance"/>
+            <column name="slug" value="finance"/>
+            <column name="description" value="Financial services, accounting, and banking positions"/>
+            <column name="created_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_modified_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" value="system"/>
+            <column name="last_modified_by" value="system"/>
+        </insert>
+
+        <insert tableName="categories">
+            <column name="name" value="Healthcare"/>
+            <column name="slug" value="healthcare"/>
+            <column name="description" value="Medical, healthcare, and pharmaceutical positions"/>
+            <column name="created_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_modified_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" value="system"/>
+            <column name="last_modified_by" value="system"/>
+        </insert>
+
+        <!-- Insert sample company -->
+        <insert tableName="companies">
+            <column name="name" value="Tech Innovators Inc"/>
+            <column name="slug" value="tech-innovators-inc"/>
+            <column name="introduce" value="A leading technology company focused on innovative solutions and cutting-edge software development."/>
+            <column name="created_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_modified_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" value="system"/>
+            <column name="last_modified_by" value="system"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
