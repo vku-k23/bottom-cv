@@ -1,0 +1,925 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1754582101046-1
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_applies
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: job_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: cv_id
+                  type: BIGINT
+              - column:
+                  name: status
+                  type: SMALLINT
+              - column:
+                  name: message
+                  type: VARCHAR(255)
+            tableName: applies
+  - changeSet:
+      id: 1754582101046-2
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_categories
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: slug
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: TEXT
+            tableName: categories
+  - changeSet:
+      id: 1754582101046-3
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_companies
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: slug
+                  type: VARCHAR(255)
+              - column:
+                  name: introduce
+                  type: TEXT
+              - column:
+                  name: phone
+                  type: VARCHAR(255)
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+              - column:
+                  name: website
+                  type: VARCHAR(255)
+              - column:
+                  name: logo
+                  type: VARCHAR(255)
+              - column:
+                  name: cover
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: industry
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: company_size
+                  type: VARCHAR(255)
+              - column:
+                  name: founded_year
+                  type: INT
+            tableName: companies
+  - changeSet:
+      id: 1754582101046-4
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_company_addresses
+                  name: company_id
+                  type: BIGINT
+              - column:
+                  name: addresses
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_company_addresses
+                  name: addresses_key
+                  type: VARCHAR(255)
+            tableName: company_addresses
+  - changeSet:
+      id: 1754582101046-5
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_company_socialmedialinks
+                  name: company_id
+                  type: BIGINT
+              - column:
+                  name: social_media_links
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_company_socialmedialinks
+                  name: social_media_links_key
+                  type: VARCHAR(255)
+            tableName: company_social_media_links
+  - changeSet:
+      id: 1754582101046-6
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_cvs
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+              - column:
+                  name: cv_file
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  name: status
+                  type: SMALLINT
+              - column:
+                  name: skills
+                  type: VARCHAR(255)
+              - column:
+                  name: experience
+                  type: VARCHAR(255)
+              - column:
+                  name: content
+                  type: VARCHAR(255)
+            tableName: cvs
+  - changeSet:
+      id: 1754582101046-7
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_job_category
+                  name: category_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_job_category
+                  name: job_id
+                  type: BIGINT
+            tableName: job_category
+  - changeSet:
+      id: 1754582101046-8
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_jobs
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: job_description
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: job_requirement
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: job_benefit
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: job_type
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: location
+                  type: VARCHAR(255)
+              - column:
+                  name: work_time
+                  type: VARCHAR(255)
+              - column:
+                  name: salary
+                  type: DOUBLE
+              - column:
+                  name: expiry_date
+                  type: DATETIME
+              - column:
+                  name: status
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: company_id
+                  type: BIGINT
+            tableName: jobs
+  - changeSet:
+      id: 1754582101046-9
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_notifications
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: message
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: is_read
+                  type: BOOLEAN
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+            tableName: notifications
+  - changeSet:
+      id: 1754582101046-10
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_profiles
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+              - column:
+                  name: day_of_birth
+                  type: DATETIME
+              - column:
+                  name: address
+                  type: VARCHAR(255)
+              - column:
+                  name: phone_number
+                  type: VARCHAR(255)
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+              - column:
+                  name: avatar
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+            tableName: profiles
+  - changeSet:
+      id: 1754582101046-11
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_recommendation
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: job_ids
+                  type: JSON
+              - column:
+                  name: created_at
+                  type: DATETIME
+            tableName: recommendation
+  - changeSet:
+      id: 1754582101046-12
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_refresh_token
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: token
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: expiry_date
+                  type: DATETIME
+              - column:
+                  name: user_id
+                  type: BIGINT
+            tableName: refresh_token
+  - changeSet:
+      id: 1754582101046-13
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_reviews
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: comment
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: rating
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: company_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+            tableName: reviews
+  - changeSet:
+      id: 1754582101046-14
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_roles
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(255)
+            tableName: roles
+  - changeSet:
+      id: 1754582101046-15
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_user_roles
+                  name: role_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_user_roles
+                  name: user_id
+                  type: BIGINT
+            tableName: user_roles
+  - changeSet:
+      id: 1754582101046-16
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_users
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_code
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: username
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: password
+                  type: VARCHAR(255)
+              - column:
+                  name: company_id
+                  type: BIGINT
+            tableName: users
+  - changeSet:
+      id: 1754582101046-17
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: slug
+            constraintName: uc_categories_slug
+            tableName: categories
+  - changeSet:
+      id: 1754582101046-18
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: slug
+            constraintName: uc_companies_slug
+            tableName: companies
+  - changeSet:
+      id: 1754582101046-19
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: user_id
+            constraintName: uc_profiles_user
+            tableName: profiles
+  - changeSet:
+      id: 1754582101046-20
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: token
+            constraintName: uc_refresh_token_token
+            tableName: refresh_token
+  - changeSet:
+      id: 1754582101046-21
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: user_id
+            constraintName: uc_refresh_token_user
+            tableName: refresh_token
+  - changeSet:
+      id: 1754582101046-22
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: name
+            constraintName: uc_roles_name
+            tableName: roles
+  - changeSet:
+      id: 1754582101046-23
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: user_code
+            constraintName: uc_users_usercode
+            tableName: users
+  - changeSet:
+      id: 1754582101046-24
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: username
+            constraintName: uc_users_username
+            tableName: users
+  - changeSet:
+      id: 1754582101046-25
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: cv_id
+            baseTableName: applies
+            constraintName: FK_APPLIES_ON_CV
+            referencedColumnNames: id
+            referencedTableName: cvs
+  - changeSet:
+      id: 1754582101046-26
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: job_id
+            baseTableName: applies
+            constraintName: FK_APPLIES_ON_JOB
+            referencedColumnNames: id
+            referencedTableName: jobs
+  - changeSet:
+      id: 1754582101046-27
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: applies
+            constraintName: FK_APPLIES_ON_USER
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754582101046-28
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: cvs
+            constraintName: FK_CVS_ON_USER
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754582101046-29
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: company_id
+            baseTableName: jobs
+            constraintName: FK_JOBS_ON_COMPANY
+            referencedColumnNames: id
+            referencedTableName: companies
+  - changeSet:
+      id: 1754582101046-30
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: notifications
+            constraintName: FK_NOTIFICATIONS_ON_USER
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754582101046-31
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: profiles
+            constraintName: FK_PROFILES_ON_USER
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754582101046-32
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: refresh_token
+            constraintName: FK_REFRESH_TOKEN_ON_USER
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754582101046-33
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: company_id
+            baseTableName: reviews
+            constraintName: FK_REVIEWS_ON_COMPANY
+            referencedColumnNames: id
+            referencedTableName: companies
+  - changeSet:
+      id: 1754582101046-34
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: reviews
+            constraintName: FK_REVIEWS_ON_USER
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754582101046-35
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: company_id
+            baseTableName: users
+            constraintName: FK_USERS_ON_COMPANY
+            referencedColumnNames: id
+            referencedTableName: companies
+  - changeSet:
+      id: 1754582101046-36
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: company_id
+            baseTableName: company_addresses
+            constraintName: fk_company_addresses_on_company
+            referencedColumnNames: id
+            referencedTableName: companies
+  - changeSet:
+      id: 1754582101046-37
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: company_id
+            baseTableName: company_social_media_links
+            constraintName: fk_company_socialmedialinks_on_company
+            referencedColumnNames: id
+            referencedTableName: companies
+  - changeSet:
+      id: 1754582101046-38
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: category_id
+            baseTableName: job_category
+            constraintName: fk_jobcat_on_category
+            referencedColumnNames: id
+            referencedTableName: categories
+  - changeSet:
+      id: 1754582101046-39
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: job_id
+            baseTableName: job_category
+            constraintName: fk_jobcat_on_job
+            referencedColumnNames: id
+            referencedTableName: jobs
+  - changeSet:
+      id: 1754582101046-40
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: role_id
+            baseTableName: user_roles
+            constraintName: fk_userol_on_role
+            referencedColumnNames: id
+            referencedTableName: roles
+  - changeSet:
+      id: 1754582101046-41
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: user_roles
+            constraintName: fk_userol_on_user
+            referencedColumnNames: id
+            referencedTableName: users
+

@@ -7,9 +7,17 @@ spring:
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+    drop-first: false
+    contexts: development,production
+    default-schema: bottom_cv
+    liquibase-schema: bottom_cv
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
@@ -20,12 +28,13 @@ spring:
       secret-key: L6OovFfxRA/YmnfxL44ou2umFmoFe1fDMK/TlEyllNoGOViiY2MelWE53EObFtfA+mg37xjJJw0m1ePB/o1maA==
       expirationMs: 900000 # 15 minutes
       refreshExpirationMs: 604800000 # 7 days
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-    virtual-host: /
+
+#  rabbitmq:
+#    host: localhost
+#    port: 5672
+#    username: guest
+#    password: guest
+#    virtual-host: /
 
 springdoc:
   api-docs:
