@@ -20,6 +20,27 @@ services:
     networks:
       - bottom-cv-network
 
+  minio:
+    image: minio/minio:latest
+    container_name: bottom-cv-minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - bottom-cv-network
+
   bottom-cv:
     image: vietquoc2408/bottom-cv:0.0.2
     container_name: bottom-cv
@@ -29,16 +50,23 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bottom_cv
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
       SERVER_PORT: 8088
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET_NAME: bottom-cv-storage
     networks:
       - bottom-cv-network
 
 volumes:
   mysql_data:
+  minio_data:
 
 networks:
   bottom-cv-network:

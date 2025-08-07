@@ -8,6 +8,8 @@ import com.cnpm.bottomcv.model.User;
 import com.cnpm.bottomcv.repository.CVRepository;
 import com.cnpm.bottomcv.repository.UserRepository;
 import com.cnpm.bottomcv.service.CVService;
+import com.cnpm.bottomcv.service.FileStorageService;
+import com.cnpm.bottomcv.service.MinioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,8 +32,7 @@ public class CVServiceImpl implements CVService {
 
     private final CVRepository cvRepository;
     private final UserRepository userRepository;
-
-    private final String uploadDir = "uploads/cvs/";
+    private final FileStorageService fileStorageService;
 
     @Override
     public CVResponse createCV(CVRequest request) {
@@ -135,15 +136,11 @@ public class CVServiceImpl implements CVService {
 
     private String saveFile(MultipartFile file) {
         try {
-            Files.createDirectories(Paths.get(uploadDir));
-
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path filePath = Paths.get(uploadDir, fileName);
-
-            Files.write(filePath, file.getBytes());
-
-            return filePath.toString();
-        } catch (IOException e) {
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            String filePath = "cv/" + fileName;
+            fileStorageService.uploadCV(file);
+            return filePath;
+        } catch (Exception e) {
             throw new RuntimeException("Failed to save file: " + e.getMessage());
         }
     }
