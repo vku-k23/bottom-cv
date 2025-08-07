@@ -24,12 +24,12 @@ public class ProfileController {
     private final ProfileService profileService;
 
     @GetMapping("/front/profile")
-    public ResponseEntity<User> authenticatedUser() {
+    public ResponseEntity<ProfileResponse> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(currentUser);
+                .body(profileService.getProfileByUserId(currentUser.getId()));
     }
 
     @PostMapping("/front/profile")
@@ -38,7 +38,7 @@ public class ProfileController {
         User currentUser = (User) authentication.getPrincipal();
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(profileService.updateProfile(currentUser.getId(), profileRequest));
+                .body(profileService.updateProfile(currentUser.getProfile().getId(), profileRequest));
     }
 
     @GetMapping("/back/profile")

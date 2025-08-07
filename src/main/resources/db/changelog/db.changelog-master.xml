@@ -7,5 +7,6 @@
 
     <include file="db/changelog/2025/08/07-01-changelog.yaml"/>
     <include file="db/changelog/2025/08/07-02-changelog.yaml"/>
+    <include file="db/changelog/2025/08/07-03-changelog.yaml"/>
 
 </databaseChangeLog>

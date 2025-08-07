@@ -1,0 +1,1505 @@
+{
+	"info": {
+		"_postman_id": "bottom-cv-api-collection",
+		"name": "Bottom CV API Collection",
+		"description": "Comprehensive API collection for Bottom CV Spring Boot application",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Test123@\",\n  \"email\": \"test@example.com\",\n  \"role\": \"CANDIDATE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signup",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('access_token', response.accessToken);",
+									"    pm.collectionVariables.set('refresh_token', response.refreshToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Test123@\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/refresh-token",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "refresh-token"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "App Info",
+			"item": [
+				{
+					"name": "Get Build Version",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/info/build-version",
+							"host": ["{{base_url}}"],
+							"path": ["api", "info", "build-version"]
+						}
+					}
+				},
+				{
+					"name": "Get Java Version",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/info/java-version",
+							"host": ["{{base_url}}"],
+							"path": ["api", "info", "java-version"]
+						}
+					}
+				},
+				{
+					"name": "Get Contact Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/info/contact-info",
+							"host": ["{{base_url}}"],
+							"path": ["api", "info", "contact-info"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Users (Admin)",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/back/users/?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+							"host": ["{{base_url}}"],
+							"path": ["api", "back", "users", ""],
+							"query": [
+								{
+									"key": "pageNo",
+									"value": "0"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortType",
+									"value": "asc"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/back/users/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "back", "users", "1"]
+						}
+					}
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"role\": \"CANDIDATE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/back/users/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "back", "users", ""]
+						}
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"updateduser\",\n  \"email\": \"updated@example.com\",\n  \"role\": \"EMPLOYER\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/back/users/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "back", "users", "1"]
+						}
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/back/users/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "back", "users", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Back (Admin/Employer)",
+					"item": [
+						{
+							"name": "Create Job",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Software Developer\",\n  \"description\": \"We are looking for a skilled software developer\",\n  \"requirements\": \"3+ years experience in Java\",\n  \"salary\": \"50000\",\n  \"location\": \"Ho Chi Minh City\",\n  \"companyId\": 1,\n  \"categoryId\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/back/jobs",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "jobs"]
+								}
+							}
+						},
+						{
+							"name": "Get Job by ID (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/jobs/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "jobs", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Jobs (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/jobs?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "jobs"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Update Job",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Senior Software Developer\",\n  \"description\": \"Updated job description\",\n  \"requirements\": \"5+ years experience in Java\",\n  \"salary\": \"70000\",\n  \"location\": \"Ho Chi Minh City\",\n  \"companyId\": 1,\n  \"categoryId\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/back/jobs/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "jobs", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Job",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/jobs/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "jobs", "1"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Front (Public/Candidate)",
+					"item": [
+						{
+							"name": "Get Job by ID (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/jobs/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "jobs", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Jobs (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/jobs?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "jobs"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Request Recommended Jobs",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/jobs/recommended/request?userId=1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "jobs", "recommended", "request"],
+									"query": [
+										{
+											"key": "userId",
+											"value": "1"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Recommended Jobs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/jobs/recommended/result?userId=1&pageNo=0&pageSize=10",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "jobs", "recommended", "result"],
+									"query": [
+										{
+											"key": "userId",
+											"value": "1"
+										},
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										}
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Companies",
+			"item": [
+				{
+					"name": "Back (Admin/Employer)",
+					"item": [
+						{
+							"name": "Create Company",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Tech Company\",\n  \"description\": \"Leading technology company\",\n  \"address\": \"123 Tech Street\",\n  \"website\": \"https://techcompany.com\",\n  \"email\": \"contact@techcompany.com\",\n  \"phone\": \"+84123456789\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/companies/back/companies",
+									"host": ["{{base_url}}"],
+									"path": ["api", "companies", "back", "companies"]
+								}
+							}
+						},
+						{
+							"name": "Update Company",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Tech Company\",\n  \"description\": \"Updated description\",\n  \"address\": \"456 Updated Street\",\n  \"website\": \"https://updated.com\",\n  \"email\": \"updated@techcompany.com\",\n  \"phone\": \"+84987654321\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/companies/back/companies/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "companies", "back", "companies", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Company",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/companies/back/companies/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "companies", "back", "companies", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get Company by ID (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/companies/back/companies/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "companies", "back", "companies", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Companies (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/companies/back/companies?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "companies", "back", "companies"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Front (Public)",
+					"item": [
+						{
+							"name": "Get Company by ID (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/companies/front/companies/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "companies", "front", "companies", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Companies (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/companies/front/companies?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "companies", "front", "companies"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Back (Admin)",
+					"item": [
+						{
+							"name": "Create Category",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Software Development\",\n  \"description\": \"Jobs related to software development\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/back/categories",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "categories"]
+								}
+							}
+						},
+						{
+							"name": "Update Category",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Category\",\n  \"description\": \"Updated description\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/back/categories/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "categories", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Category",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/categories/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "categories", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get Category by ID (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/categories/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "categories", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Categories (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/categories?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "categories"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Front (Public)",
+					"item": [
+						{
+							"name": "Get Category by ID (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/categories/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "categories", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Categories (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/categories?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "categories"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "CVs",
+			"item": [
+				{
+					"name": "Back (Admin/Employer)",
+					"item": [
+						{
+							"name": "Get CV by ID (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/cvs/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "cvs", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All CVs (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/cvs?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "cvs"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Front (Candidate)",
+					"item": [
+						{
+							"name": "Create CV",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "title",
+											"value": "My CV",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "Software Developer CV",
+											"type": "text"
+										},
+										{
+											"key": "file",
+											"type": "file",
+											"src": []
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/front/cvs",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "cvs"]
+								}
+							}
+						},
+						{
+							"name": "Get CV by ID (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/cvs/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "cvs", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All CVs (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/cvs?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "cvs"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Update CV",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "title",
+											"value": "Updated CV",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "Updated description",
+											"type": "text"
+										},
+										{
+											"key": "file",
+											"type": "file",
+											"src": []
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/front/cvs/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "cvs", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete CV",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/cvs/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "cvs", "1"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Applications",
+			"item": [
+				{
+					"name": "Back (Admin/Employer)",
+					"item": [
+						{
+							"name": "Get Application by ID (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/applies/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "applies", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Applications (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/applies?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "applies"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Update Application",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"status\": \"ACCEPTED\",\n  \"notes\": \"Application approved\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/back/applies/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "applies", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Application",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/applies/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "applies", "1"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Front (Candidate)",
+					"item": [
+						{
+							"name": "Create Application",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jobId\": 1,\n  \"cvId\": 1,\n  \"coverLetter\": \"I am very interested in this position...\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/front/applies",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "applies"]
+								}
+							}
+						},
+						{
+							"name": "Get Application by ID (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/applies/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "applies", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Applications (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/applies?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "applies"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Profile",
+			"item": [
+				{
+					"name": "Front (Authenticated User)",
+					"item": [
+						{
+							"name": "Get Current User Profile",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/profile",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "profile"]
+								}
+							}
+						},
+						{
+							"name": "Update Current User Profile",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+84123456789\",\n  \"address\": \"123 Main St\",\n  \"dateOfBirth\": \"1990-01-01\",\n  \"bio\": \"Software developer with 5 years experience\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/front/profile",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "profile"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Back (Admin)",
+					"item": [
+						{
+							"name": "Get All Profiles",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/profile?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "profile"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Profile by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/profile/1?id=1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "profile", "1"],
+									"query": [
+										{
+											"key": "id",
+											"value": "1"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Create Profile",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"phone\": \"+84987654321\",\n  \"address\": \"456 Another St\",\n  \"dateOfBirth\": \"1992-05-15\",\n  \"bio\": \"Marketing specialist\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/back/profile",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "profile"]
+								}
+							}
+						},
+						{
+							"name": "Update Profile",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"firstName\": \"Updated Jane\",\n  \"lastName\": \"Updated Smith\",\n  \"phone\": \"+84111222333\",\n  \"address\": \"789 Updated St\",\n  \"dateOfBirth\": \"1992-05-15\",\n  \"bio\": \"Updated bio\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/back/profile/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "profile", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Profile",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/profile/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "profile", "1"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Reviews",
+			"item": [
+				{
+					"name": "Back (Admin)",
+					"item": [
+						{
+							"name": "Get Review by ID (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/reviews/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "reviews", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Reviews (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/reviews?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "reviews"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Delete Review",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/reviews/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "reviews", "1"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Front (Candidate/Public)",
+					"item": [
+						{
+							"name": "Create Review",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"rating\": 5,\n  \"comment\": \"Great company to work for!\",\n  \"companyId\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/front/reviews",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "reviews"]
+								}
+							}
+						},
+						{
+							"name": "Get Review by ID (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/reviews/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "reviews", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get All Reviews (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/reviews?pageNo=0&pageSize=10&sortBy=id&sortType=asc",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "reviews"],
+									"query": [
+										{
+											"key": "pageNo",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "10"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortType",
+											"value": "asc"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Update Review",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"rating\": 4,\n  \"comment\": \"Updated review comment\",\n  \"companyId\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/front/reviews/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "reviews", "1"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Back (Admin/Employer)",
+					"item": [
+						{
+							"name": "Create Notification",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"New Job Application\",\n  \"message\": \"You have received a new job application\",\n  \"userId\": 1,\n  \"type\": \"APPLICATION\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/back/notifications",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "notifications"]
+								}
+							}
+						},
+						{
+							"name": "Get Notification by ID (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/notifications/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "notifications", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get Notifications by User ID (Back)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/notifications/user/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "notifications", "user", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Notification",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/back/notifications/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "back", "notifications", "1"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Front (Candidate/Employer)",
+					"item": [
+						{
+							"name": "Get Notification by ID (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/notifications/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "notifications", "1"]
+								}
+							}
+						},
+						{
+							"name": "Get Notifications by User ID (Front)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/notifications/user/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "notifications", "user", "1"]
+								}
+							}
+						},
+						{
+							"name": "Mark Notification as Read",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/front/notifications/1/read",
+									"host": ["{{base_url}}"],
+									"path": ["api", "front", "notifications", "1", "read"]
+								}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}
+

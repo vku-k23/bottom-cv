@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -58,7 +59,7 @@ public class DataInitializer implements CommandLineRunner {
                     .password("admin")
                     .firstName("Admin")
                     .lastName("User")
-                    .dayOfBirth(LocalDateTime.of(2000, 1, 1, 0, 0))
+                    .dayOfBirth(LocalDate.of(1990, 1, 1))
                     .email("admin@gmail.com")
                     .phoneNumber("0123456789")
                     .build();

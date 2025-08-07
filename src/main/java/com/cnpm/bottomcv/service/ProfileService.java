@@ -7,6 +7,8 @@ import com.cnpm.bottomcv.dto.response.ProfileResponse;
 public interface ProfileService {
     ListResponse<ProfileResponse> allProfiles(int pageNo, int pageSize, String sortBy, String sortType);
 
+    ProfileResponse getProfileByUserId(Long id);
+
     ProfileResponse getProfileById(Long id);
 
     ProfileResponse createProfile(ProfileRequest profileRequest);

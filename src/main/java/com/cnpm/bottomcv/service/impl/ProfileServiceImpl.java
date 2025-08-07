@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -43,6 +44,13 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    public ProfileResponse getProfileByUserId(Long id) {
+        return profileRepository.findByUserId(id)
+                .map(this::mapToProfileResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("Profile", "userId", id.toString()));
+    }
+
+    @Override
     public ProfileResponse getProfileById(Long id) {
         return profileRepository.findById(id)
                 .map(this::mapToProfileResponse)
@@ -54,7 +62,7 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = Profile.builder()
                 .firstName(profileRequest.getFirstName())
                 .lastName(profileRequest.getLastName())
-                .dayOfBirth(LocalDateTime.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")))
+                .dayOfBirth(LocalDate.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")))
                 .address(profileRequest.getAddress())
                 .phoneNumber(profileRequest.getPhoneNumber())
                 .email(profileRequest.getEmail())
@@ -71,7 +79,7 @@ public class ProfileServiceImpl implements ProfileService {
 
         profile.setFirstName(profileRequest.getFirstName());
         profile.setLastName(profileRequest.getLastName());
-        profile.setDayOfBirth(LocalDateTime.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+        profile.setDayOfBirth(LocalDate.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")));
         profile.setAddress(profileRequest.getAddress());
         profile.setPhoneNumber(profileRequest.getPhoneNumber());
         profile.setEmail(profileRequest.getEmail());
