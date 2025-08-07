@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = PastDateOfBirthValidator.class)
+@Constraint(validatedBy = {PastDateOfBirthValidator.class, PastDateOfBirthLocalDateTimeValidator.class, PastDateOfBirthLocalDateValidator.class})
 public @interface PastDateOfBirth {
     String message() default "Date of birth must be in the past.";
     Class<?>[] groups() default {};

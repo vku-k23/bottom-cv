@@ -1,10 +1,6 @@
 package com.cnpm.bottomcv.dto.request;
 
-import com.cnpm.bottomcv.validation.InvalidWords.InvalidWords;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -54,6 +50,7 @@ public class CompanyRequest {
     @NotBlank(message = "Company size is required")
     private String companySize;
 
-    @NotBlank(message = "Founded year is required")
+    @NotNull(message = "Founded year is required")
+    @Min(value = 1800, message = "Founded year must be after 1800")
     private Integer foundedYear;
 }

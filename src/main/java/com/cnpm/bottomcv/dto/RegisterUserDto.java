@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
@@ -44,6 +44,6 @@ public class RegisterUserDto {
     @NotBlank(message = "Date of birth is required")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @PastDateOfBirth(message = "Date of birth must be in the past")
-    private LocalDateTime dayOfBirth;
+    private LocalDate dayOfBirth;
 
 }

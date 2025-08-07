@@ -22,7 +22,7 @@ public class CVRequest {
     private String title;
 
     @NotNull(message = "CV file is required")
-    @ValidFile(allowedTypes = {"application/pdf"}, maxSize = 5 * 1024 * 1024, message = "CV file must be a PDF and less than 5MB")
+    @ValidFile(message = "CV file must be a PDF and less than 5MB")
     private MultipartFile cvFile;
 
     @NotBlank(message = "Skills is required")
