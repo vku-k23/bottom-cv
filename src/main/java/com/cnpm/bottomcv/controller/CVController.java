@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "CV API", description = "The API of CV")
 @RestController
-@RequestMapping(value = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
+@RequestMapping(value = "/api/v1", produces = { MediaType.APPLICATION_JSON_VALUE })
 @RequiredArgsConstructor
 public class CVController {
     private final CVService cvService;
@@ -34,8 +34,7 @@ public class CVController {
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortType
-    ) {
+            @RequestParam(defaultValue = "asc") String sortType) {
         return ResponseEntity.ok(cvService.getAllCVs(pageNo, pageSize, sortBy, sortType));
     }
 
@@ -60,8 +59,7 @@ public class CVController {
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortType
-    ) {
+            @RequestParam(defaultValue = "asc") String sortType) {
         return ResponseEntity.ok(cvService.getAllCVs(pageNo, pageSize, sortBy, sortType));
     }
 
