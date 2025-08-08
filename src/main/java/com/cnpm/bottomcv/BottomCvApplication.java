@@ -3,19 +3,16 @@ package com.cnpm.bottomcv;
 import com.cnpm.bottomcv.dto.AppContactDto;
 import io.swagger.v3.oas.annotations.ExternalDocumentation;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-
-
-/**
- * The main class of the application
- * test jira integration in scrum-1
- */
 
 @SpringBootApplication
 @EnableConfigurationProperties(AppContactDto.class)
@@ -26,11 +23,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
                 description = "Bottom CV REST API Documentation, the API is used to manage the bottom cv of the system",
                 version = "v1",
                 contact = @Contact(
-                        name = "vku-k23",
-                        email = "vietnq23ceb@vku.udn.vn, \n" +
-                                "khapd.23it@vku.udn.vn\n" +
-                                "trieunv.23it@vku.udn.vn\n" +
-                                "tuantq.23it@vku.udn.vn",
+                        name = "Viet Quoc Nguyen",
+                        email = "vietnq23ceb@vku.udn.vn",
                         url = "https://github.com/vku-k23/bottom-cv"
                 ),
                 license = @License(
@@ -41,7 +35,14 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
         externalDocs = @ExternalDocumentation(
                 description = "Bottom CV REST API Documentation",
                 url = "https://localhost:8088/swagger-ui.html"
-        )
+        ),
+        security = @SecurityRequirement(name = "bearerAuth")
+)
+@SecurityScheme(
+        name = "bearerAuth",
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT"
 )
 public class BottomCvApplication {
 

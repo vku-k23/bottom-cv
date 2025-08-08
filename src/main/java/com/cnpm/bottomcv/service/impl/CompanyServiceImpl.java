@@ -6,6 +6,7 @@ import com.cnpm.bottomcv.dto.response.CompanyResponse;
 import com.cnpm.bottomcv.dto.response.JobResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.exception.ResourceAlreadyExistException;
+import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.Category;
 import com.cnpm.bottomcv.model.Company;
 import com.cnpm.bottomcv.model.Job;
@@ -47,7 +48,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public CompanyResponse getCompanyById(Long id) {
         Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
         return mapToResponse(company);
     }
 
@@ -71,7 +72,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public CompanyResponse updateCompany(Long id, CompanyRequest request) {
         Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
 
         if (!company.getSlug().equals(request.getSlug()) && companyRepository.existsBySlug(request.getSlug())) {
             throw new ResourceAlreadyExistException("Slug already exists");
@@ -89,7 +90,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public void deleteCompany(Long id) {
         Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
         companyRepository.delete(company);
     }
 

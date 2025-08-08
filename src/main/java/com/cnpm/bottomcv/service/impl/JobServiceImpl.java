@@ -147,7 +147,7 @@ public class JobServiceImpl implements JobService {
     @Override
     public JobResponse getJobById(Long id) {
         Job job = jobRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Job id", "id", id.toString()));
         return mapToResponse(job);
     }
 
@@ -183,7 +183,7 @@ public class JobServiceImpl implements JobService {
             if (jobSearchRequest.getCategoryId() != null) {
                 predicates.add(cb.isMember(
                         categoryRepository.findById(jobSearchRequest.getCategoryId())
-                                .orElseThrow(() -> new RuntimeException("Category not found")),
+                                .orElseThrow(() -> new ResourceNotFoundException("Category id", "id", jobSearchRequest.getCategoryId().toString())),
                         root.get("categories")
                 ));
             }
@@ -300,7 +300,7 @@ public class JobServiceImpl implements JobService {
         // Lấy CV của người dùng
         List<CV> cvs = cvRepository.findByUserId(user.getId());
         if (cvs.isEmpty()) {
-            throw new RuntimeException("No CV found for user: " + user.getId());
+            throw new ResourceNotFoundException("CV id", "userId", user.getId().toString());
         }
 
         // Chọn CV đầu tiên (có thể thay đổi logic để chọn CV mới nhất hoặc CV chính)
