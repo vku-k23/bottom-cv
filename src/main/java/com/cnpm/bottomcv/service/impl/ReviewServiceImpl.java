@@ -3,6 +3,7 @@ package com.cnpm.bottomcv.service.impl;
 import com.cnpm.bottomcv.dto.request.ReviewRequest;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.ReviewResponse;
+import com.cnpm.bottomcv.exception.BadRequestException;
 import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.Company;
 import com.cnpm.bottomcv.model.Review;
@@ -16,7 +17,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +35,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ReviewResponse createReview(ReviewRequest request) {
+        if (reviewRepository.existsByUser_IdAndCompany_Id(request.getUserId(), request.getCompanyId())) {
+            throw new BadRequestException("User has already reviewed this company");
+        }
         Review review = new Review();
         mapRequestToEntity(review, request);
         review.setCreatedAt(LocalDateTime.now());
@@ -49,7 +55,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public ListResponse<ReviewResponse> getAllReviews(int pageNo, int pageSize, String sortBy, String sortType) {
-        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
         Page<Review> pageReview = reviewRepository.findAll(pageable);
         List<Review> reviews = pageReview.getContent();
@@ -94,7 +101,8 @@ public class ReviewServiceImpl implements ReviewService {
         review.setRating(request.getRating());
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", request.getCompanyId().toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId",
+                        request.getCompanyId().toString()));
         review.setCompany(company);
 
         User user = userRepository.findById(request.getUserId())

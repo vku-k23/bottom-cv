@@ -7,6 +7,7 @@ import com.cnpm.bottomcv.service.CompanyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,8 @@ public class CompanyController {
     @PostMapping("/back/companies")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<CompanyResponse> createCompany(@Valid @RequestBody CompanyRequest request) {
-        return ResponseEntity.ok(companyService.createCompany(request));
+        var response = companyService.createCompany(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PutMapping("/back/companies/{id}")

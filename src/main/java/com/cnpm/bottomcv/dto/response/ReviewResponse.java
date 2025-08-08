@@ -18,7 +18,6 @@ public class ReviewResponse {
     private Integer rating;
     private Long companyId;
     private Long userId;
-    private Long jobId;
     private LocalDateTime createdAt;
     private String createdBy;
     private LocalDateTime updatedAt;

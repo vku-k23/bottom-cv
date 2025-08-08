@@ -26,7 +26,4 @@ public class ReviewRequest {
 
     @NotNull(message = "User ID is required")
     private Long userId;
-
-    @NotNull(message = "Job ID is required")
-    private Long jobId;
 }

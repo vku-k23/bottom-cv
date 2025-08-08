@@ -4,12 +4,16 @@ import com.cnpm.bottomcv.validation.InvalidWords.InvalidWords;
 import com.cnpm.bottomcv.validation.PastDateOfBirth.PastDateOfBirth;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -24,9 +28,10 @@ public class ProfileRequest {
     @Size(min = 3, max = 30, message = "Last name must be between 3 and 30 characters")
     private String lastName;
 
-    @NotBlank(message = "First name is required")
+    @NotNull(message = "Date of birth is required")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @PastDateOfBirth(message = "Date of birth must be in the past")
-    private String dayOfBirth;
+    private LocalDate dayOfBirth;
 
     @Size(max = 255, message = "Address must be less than 255 characters")
     @InvalidWords(message = "Address contains invalid words")

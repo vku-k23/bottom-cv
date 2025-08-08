@@ -20,9 +20,8 @@ public class RegisterUserDto {
     private String username;
 
     @NotBlank(message = "Password is required")
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$",
-             message = "Password must contain like Az0@1 and be at least 6 characters long")
-    @Size(min = 4, max = 50, message = "Password must be at least 6 characters")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$", message = "Password must contain like Az0@1 and be at least 6 characters long")
+    @Size(min = 6, max = 50, message = "Password must be at least 6 characters")
     private String password;
 
     @NotBlank(message = "Email is required")
@@ -41,7 +40,7 @@ public class RegisterUserDto {
     @Size(min = 3, max = 25, message = "Last name must between 3 and 25 character")
     private String lastName;
 
-    @NotBlank(message = "Date of birth is required")
+    @NotNull(message = "Date of birth is required")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @PastDateOfBirth(message = "Date of birth must be in the past")
     private LocalDate dayOfBirth;

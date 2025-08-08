@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "CV API", description = "The API of CV")
@@ -60,7 +61,8 @@ public class CVController {
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortType) {
-        return ResponseEntity.ok(cvService.getAllCVs(pageNo, pageSize, sortBy, sortType));
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(cvService.getAllMyCVs(username, pageNo, pageSize, sortBy, sortType));
     }
 
     @PutMapping(value = "/front/cvs/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

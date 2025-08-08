@@ -62,7 +62,7 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = Profile.builder()
                 .firstName(profileRequest.getFirstName())
                 .lastName(profileRequest.getLastName())
-                .dayOfBirth(LocalDate.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")))
+                .dayOfBirth(profileRequest.getDayOfBirth())
                 .address(profileRequest.getAddress())
                 .phoneNumber(profileRequest.getPhoneNumber())
                 .email(profileRequest.getEmail())
@@ -77,15 +77,15 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = profileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Profile id", "id", id.toString()));
 
-        profile.setFirstName(profileRequest.getFirstName());
-        profile.setLastName(profileRequest.getLastName());
-        profile.setDayOfBirth(
-                LocalDate.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")));
-        profile.setAddress(profileRequest.getAddress());
-        profile.setPhoneNumber(profileRequest.getPhoneNumber());
-        profile.setEmail(profileRequest.getEmail());
-        profile.setAvatar(profileRequest.getAvatar());
-        profile.setDescription(profileRequest.getDescription());
+        profile.setFirstName(profileRequest.getFirstName().trim());
+        profile.setLastName(profileRequest.getLastName().trim());
+        profile.setDayOfBirth(profileRequest.getDayOfBirth());
+        profile.setAddress(profileRequest.getAddress() == null ? "" : profileRequest.getAddress().trim());
+        profile.setPhoneNumber(profileRequest.getPhoneNumber().trim());
+        profile.setEmail(profileRequest.getEmail().trim());
+        profile.setAvatar(profileRequest.getAvatar() == null ? "" : profileRequest.getAvatar().trim());
+        profile.setDescription(
+                profileRequest.getDescription() == null ? "" : profileRequest.getDescription().trim());
 
         return mapToProfileResponse(profileRepository.save(profile));
     }

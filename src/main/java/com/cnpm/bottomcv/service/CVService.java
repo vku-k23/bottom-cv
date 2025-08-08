@@ -13,6 +13,8 @@ public interface CVService {
 
     ListResponse<CVResponse> getAllCVs(int pageNo, int pageSize, String sortBy, String sortType);
 
+    ListResponse<CVResponse> getAllMyCVs(String username, int pageNo, int pageSize, String sortBy, String sortType);
+
     CVResponse getCVById(Long id);
 
     ListResponse<CVResponse> getAllCVsByUserId(Long userId, int pageNo, int pageSize, String sortBy, String sortType);
