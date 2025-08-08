@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Authentication API", description = "The API of JWT authentication")
-@RequestMapping(value = "/api/auth", produces = {MediaType.APPLICATION_JSON_VALUE})
+@RequestMapping(value = "/api/v1/auth", produces = { MediaType.APPLICATION_JSON_VALUE })
 @RestController
 @RequiredArgsConstructor
 public class AuthenticationController {
@@ -55,7 +55,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<RefreshTokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+    public ResponseEntity<RefreshTokenResponse> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
         String requestRefreshToken = refreshTokenRequest.getRefreshToken();
 
         return refreshTokenService.findByToken(requestRefreshToken)

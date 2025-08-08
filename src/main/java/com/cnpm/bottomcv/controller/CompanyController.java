@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Company API", description = "The API of company")
 @RestController
-@RequestMapping(value = "/api/companies", produces = {MediaType.APPLICATION_JSON_VALUE})
+@RequestMapping(value = "/api/v1", produces = { MediaType.APPLICATION_JSON_VALUE })
 @RequiredArgsConstructor
 public class CompanyController {
     private final CompanyService companyService;
@@ -28,7 +28,8 @@ public class CompanyController {
 
     @PutMapping("/back/companies/{id}")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
-    public ResponseEntity<CompanyResponse> updateCompany(@PathVariable Long id, @Valid @RequestBody CompanyRequest request) {
+    public ResponseEntity<CompanyResponse> updateCompany(@PathVariable Long id,
+            @Valid @RequestBody CompanyRequest request) {
         return ResponseEntity.ok(companyService.updateCompany(id, request));
     }
 
@@ -51,8 +52,7 @@ public class CompanyController {
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortType
-    ) {
+            @RequestParam(defaultValue = "asc") String sortType) {
         return ResponseEntity.ok(companyService.getAllCompanies(pageNo, pageSize, sortBy, sortType));
     }
 
@@ -67,8 +67,7 @@ public class CompanyController {
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortType
-    ) {
+            @RequestParam(defaultValue = "asc") String sortType) {
         return ResponseEntity.ok(companyService.getAllCompanies(pageNo, pageSize, sortBy, sortType));
     }
 }

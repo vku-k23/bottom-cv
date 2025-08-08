@@ -18,7 +18,7 @@ import java.io.IOException;
 
 @Tag(name = "Job API", description = "The API of job")
 @RestController
-@RequestMapping(value = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
+@RequestMapping(value = "/api/v1", produces = { MediaType.APPLICATION_JSON_VALUE })
 @RequiredArgsConstructor
 public class JobController {
 
@@ -85,8 +85,7 @@ public class JobController {
     public ResponseEntity<ListResponse<JobResponse>> getRecommendedJobs(
             @RequestParam Long userId,
             @RequestParam(defaultValue = "0") int pageNo,
-            @RequestParam(defaultValue = "10") int pageSize
-    ) throws IOException {
+            @RequestParam(defaultValue = "10") int pageSize) throws IOException {
         ListResponse<JobResponse> response = jobService.getRecommendedJobs(userId, pageNo, pageSize);
         return ResponseEntity.ok(response);
     }

@@ -1,6 +1,5 @@
 package com.cnpm.bottomcv.controller;
 
-
 import com.cnpm.bottomcv.dto.request.CategoryRequest;
 import com.cnpm.bottomcv.dto.response.CategoryResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
@@ -15,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Category API", description = "The API of category")
 @RestController
-@RequestMapping(value = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
+@RequestMapping(value = "/api/v1", produces = { MediaType.APPLICATION_JSON_VALUE })
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
@@ -29,7 +28,8 @@ public class CategoryController {
 
     @PutMapping("/back/categories/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long id,
+            @Valid @RequestBody CategoryRequest request) {
         return ResponseEntity.ok(categoryService.update(id, request));
     }
 
@@ -52,8 +52,7 @@ public class CategoryController {
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortType
-    ) {
+            @RequestParam(defaultValue = "asc") String sortType) {
         return ResponseEntity.ok(categoryService.getAll(pageNo, pageSize, sortBy, sortType));
     }
 
@@ -68,8 +67,7 @@ public class CategoryController {
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortType
-    ) {
+            @RequestParam(defaultValue = "asc") String sortType) {
         return ResponseEntity.ok(categoryService.getAll(pageNo, pageSize, sortBy, sortType));
     }
 

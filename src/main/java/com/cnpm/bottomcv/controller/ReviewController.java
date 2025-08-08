@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Review API", description = "The API of review")
 @RestController
-@RequestMapping(value = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 public class ReviewController {
 
@@ -35,8 +35,7 @@ public class ReviewController {
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortType
-    ) {
+            @RequestParam(defaultValue = "asc") String sortType) {
         return ResponseEntity.ok(reviewService.getAllReviews(pageNo, pageSize, sortBy, sortType));
     }
 
@@ -66,14 +65,14 @@ public class ReviewController {
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortType
-    ) {
+            @RequestParam(defaultValue = "asc") String sortType) {
         return ResponseEntity.ok(reviewService.getAllReviews(pageNo, pageSize, sortBy, sortType));
     }
 
     @PutMapping("/front/reviews/{id}")
     @PreAuthorize("hasRole('CANDIDATE')")
-    public ResponseEntity<ReviewResponse> updateReview(@PathVariable Long id, @Valid @RequestBody ReviewRequest request) {
+    public ResponseEntity<ReviewResponse> updateReview(@PathVariable Long id,
+            @Valid @RequestBody ReviewRequest request) {
         ReviewResponse response = reviewService.updateReview(id, request);
         return ResponseEntity.ok(response);
     }

@@ -16,7 +16,7 @@ import java.util.List;
 
 @Tag(name = "Notification API", description = "The API of notification")
 @RestController
-@RequestMapping(value = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 public class NotificationController {
 

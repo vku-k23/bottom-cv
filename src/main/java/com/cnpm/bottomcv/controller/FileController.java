@@ -5,7 +5,6 @@ import com.cnpm.bottomcv.dto.response.FileUploadResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "File Management", description = "APIs for file upload, download, and management")
@@ -39,8 +38,7 @@ public class FileController {
     })
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<FileUploadResponse> uploadCV(
-            @Parameter(description = "CV file to upload", required = true)
-            @RequestParam("file") MultipartFile file) {
+            @Parameter(description = "CV file to upload", required = true) @RequestParam("file") MultipartFile file) {
 
         try {
             FileUploadResponse response = fileStorageService.uploadCV(file);
@@ -64,8 +62,7 @@ public class FileController {
     })
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<FileUploadResponse> uploadProfileImage(
-            @Parameter(description = "Profile image to upload", required = true)
-            @RequestParam("file") MultipartFile file) {
+            @Parameter(description = "Profile image to upload", required = true) @RequestParam("file") MultipartFile file) {
 
         try {
             FileUploadResponse response = fileStorageService.uploadProfileImage(file);
@@ -89,8 +86,7 @@ public class FileController {
     })
     @PreAuthorize("hasRole('COMPANY') or hasRole('ADMIN')")
     public ResponseEntity<FileUploadResponse> uploadCompanyLogo(
-            @Parameter(description = "Company logo to upload", required = true)
-            @RequestParam("file") MultipartFile file) {
+            @Parameter(description = "Company logo to upload", required = true) @RequestParam("file") MultipartFile file) {
 
         try {
             FileUploadResponse response = fileStorageService.uploadCompanyLogo(file);
@@ -108,14 +104,12 @@ public class FileController {
     @GetMapping("/download/{objectName:.+}")
     @Operation(summary = "Download file", description = "Download a file by its object name")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "File downloaded successfully",
-                    content = @Content(mediaType = "application/octet-stream")),
+            @ApiResponse(responseCode = "200", description = "File downloaded successfully", content = @Content(mediaType = "application/octet-stream")),
             @ApiResponse(responseCode = "404", description = "File not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<Resource> downloadFile(
-            @Parameter(description = "Object name of the file to download", required = true)
-            @PathVariable String objectName) {
+            @Parameter(description = "Object name of the file to download", required = true) @PathVariable String objectName) {
 
         try {
             return fileStorageService.downloadFile(objectName);
@@ -133,8 +127,7 @@ public class FileController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<Map<String, Object>> getFileUrl(
-            @Parameter(description = "Object name of the file", required = true)
-            @PathVariable String objectName) {
+            @Parameter(description = "Object name of the file", required = true) @PathVariable String objectName) {
 
         try {
             if (!fileStorageService.fileExists(objectName)) {
@@ -170,8 +163,7 @@ public class FileController {
     })
     @PreAuthorize("hasRole('ADMIN') or @fileSecurityService.canDeleteFile(authentication.name, #objectName)")
     public ResponseEntity<Map<String, Object>> deleteFile(
-            @Parameter(description = "Object name of the file to delete", required = true)
-            @PathVariable String objectName) {
+            @Parameter(description = "Object name of the file to delete", required = true) @PathVariable String objectName) {
 
         try {
             if (!fileStorageService.fileExists(objectName)) {

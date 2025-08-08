@@ -2,6 +2,7 @@ package com.cnpm.bottomcv.config;
 
 import com.cnpm.bottomcv.constant.RoleType;
 import com.cnpm.bottomcv.dto.RegisterUserDto;
+import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.Role;
 import com.cnpm.bottomcv.model.User;
 import com.cnpm.bottomcv.repository.RoleRepository;
@@ -9,13 +10,11 @@ import com.cnpm.bottomcv.repository.UserRepository;
 import com.cnpm.bottomcv.service.AuthenticationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 @Component
@@ -52,7 +51,7 @@ public class DataInitializer implements CommandLineRunner {
         
         if (!userRepository.existsByUsername("admin")) {
             Role roleAdmin = roleRepository.findByName(RoleType.ADMIN)
-                    .orElseThrow(() -> new RuntimeException("Admin role not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Role id", "id", RoleType.ADMIN.toString()));
 
             RegisterUserDto registerUserDto = RegisterUserDto.builder()
                     .username("admin")
