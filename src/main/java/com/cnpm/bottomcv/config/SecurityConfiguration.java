@@ -18,37 +18,37 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfiguration {
-        private final AuthenticationProvider authenticationProvider;
-        private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final AuthenticationProvider authenticationProvider;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-        @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                http.csrf(AbstractHttpConfigurer::disable)
-                                .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers(
-                                                                "/api/v1/auth/**",
-                                                                "/api/v1/public/**",
-                                                                "/api/v1/info/**",
-                                                                "/v3/api-docs/**",
-                                                                "/swagger-ui.html", "/swagger-ui/**")
-                                                .permitAll()
-                                                .requestMatchers(HttpMethod.GET,
-                                                                "/api/v1/front/categories/**",
-                                                                "/api/v1/front/jobs/**",
-                                                                "/api/v1/front/reviews/**",
-                                                                "/api/v1/front/companies/**")
-                                                .permitAll()
-                                                .requestMatchers("/api/v1/back/**").hasRole("ADMIN")
-                                                .requestMatchers("/api/v1/front/**").hasAnyRole("CANDIDATE", "EMPLOYER")
-                                                .requestMatchers("/api/v1/back/users/**").hasRole("ADMIN")
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/api/v1/public/**",
+                                "/api/v1/info/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html", "/swagger-ui/**")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/front/categories/**",
+                                "/api/v1/front/jobs/**",
+                                "/api/v1/front/reviews/**",
+                                "/api/v1/front/companies/**")
+                        .permitAll()
+                        .requestMatchers("/api/v1/back/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/front/**").hasAnyRole("CANDIDATE", "EMPLOYER")
+                        .requestMatchers("/api/v1/back/users/**").hasRole("ADMIN")
 
-                                                .anyRequest().authenticated())
-                                .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .authenticationProvider(authenticationProvider)
-                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-                return http.build();
-        }
+        return http.build();
+    }
 
 }
