@@ -3,6 +3,7 @@ package com.cnpm.bottomcv.service.impl;
 import com.cnpm.bottomcv.dto.request.ApplyRequest;
 import com.cnpm.bottomcv.dto.response.ApplyResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
+import com.cnpm.bottomcv.exception.BadRequestException;
 import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.Apply;
 import com.cnpm.bottomcv.model.CV;
@@ -96,6 +97,9 @@ public class ApplyServiceImpl implements ApplyService {
 
         CV cv = cvRepository.findById(request.getCvId())
                 .orElseThrow(() -> new ResourceNotFoundException("CV id", "cvId", request.getCvId().toString()));
+        if (!cv.getUser().getId().equals(request.getUserId())) {
+            throw new BadRequestException(String.format("CV id %s and user id %s do not match!", request.getCvId(), request.getUserId()));
+        }
         apply.setCv(cv);
 
         Job job = jobRepository.findById(request.getJobId())

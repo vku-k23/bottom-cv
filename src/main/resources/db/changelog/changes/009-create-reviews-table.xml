@@ -47,6 +47,11 @@
                 referencedColumnNames="id"
                 constraintName="fk_reviews_user_id"
                 onDelete="CASCADE"/>
+
+        <addUniqueConstraint
+                tableName="reviews"
+                columnNames="user_id, company_id"
+                constraintName="uc_reviews_user_company"/>
     </changeSet>
 
 </databaseChangeLog>

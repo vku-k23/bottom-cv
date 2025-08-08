@@ -115,7 +115,7 @@ public class JobServiceImpl implements JobService {
                         throw new RuntimeException("Error extracting job features", e);
                     }
                 }).sorted((a, b) -> Double.compare(b.getScore(), a.getScore()))
-                .collect(Collectors.toList());
+                .toList();
 
         // Lấy top 10 công việc gợi ý
         List<Long> recommendedJobIds = jobScores.stream()

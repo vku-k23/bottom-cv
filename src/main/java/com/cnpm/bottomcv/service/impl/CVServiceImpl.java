@@ -15,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -70,6 +72,23 @@ public class CVServiceImpl implements CVService {
                 .build();
     }
 
+    @Override
+    public ListResponse<CVResponse> getAllMyCVs(String username, int pageNo, int pageSize, String sortBy, String sortType) {
+        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
+        Page<CV> pageCompany = cvRepository.findAllByUserUsername(username, pageable);
+        List<CV> companyContent = pageCompany.getContent();
+
+        return ListResponse.<CVResponse>builder()
+                .data(mapToResponseList(companyContent))
+                .pageNo(pageCompany.getNumber())
+                .pageSize(pageCompany.getSize())
+                .totalElements((int) pageCompany.getTotalElements())
+                .totalPages(pageCompany.getTotalPages())
+                .isLast(pageCompany.isLast())
+                .build();
+    }
+
     private List<CVResponse> mapToResponseList(List<CV> companyContent) {
         return companyContent.stream()
                 .map(this::mapToResponse)
@@ -112,6 +131,9 @@ public class CVServiceImpl implements CVService {
     private void mapRequestToEntity(CV cv, CVRequest request, String filePath) {
         cv.setTitle(request.getTitle());
         cv.setCvFile(filePath);
+        cv.setSkills(request.getSkills());
+        cv.setContent(request.getContent());
+        cv.setExperience(request.getExperience());
 
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User id", "userId", request.getUserId().toString()));
