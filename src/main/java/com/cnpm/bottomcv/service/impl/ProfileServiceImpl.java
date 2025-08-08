@@ -16,7 +16,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -28,7 +27,8 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ListResponse<ProfileResponse> allProfiles(int pageNo, int pageSize, String sortBy, String sortType) {
-        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
         Page<Profile> pageProfiles = profileRepository.findAll(pageable);
         List<Profile> profiles = pageProfiles.getContent();
@@ -79,7 +79,8 @@ public class ProfileServiceImpl implements ProfileService {
 
         profile.setFirstName(profileRequest.getFirstName());
         profile.setLastName(profileRequest.getLastName());
-        profile.setDayOfBirth(LocalDate.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+        profile.setDayOfBirth(
+                LocalDate.parse(profileRequest.getDayOfBirth(), DateTimeFormatter.ofPattern("dd-MM-yyyy")));
         profile.setAddress(profileRequest.getAddress());
         profile.setPhoneNumber(profileRequest.getPhoneNumber());
         profile.setEmail(profileRequest.getEmail());

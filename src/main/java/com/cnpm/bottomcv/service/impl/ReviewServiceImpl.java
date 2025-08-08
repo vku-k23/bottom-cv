@@ -3,6 +3,7 @@ package com.cnpm.bottomcv.service.impl;
 import com.cnpm.bottomcv.dto.request.ReviewRequest;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.ReviewResponse;
+import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.Company;
 import com.cnpm.bottomcv.model.Review;
 import com.cnpm.bottomcv.model.User;
@@ -42,7 +43,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public ReviewResponse getReviewById(Long id) {
         Review review = reviewRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Review id", "id", id.toString()));
         return mapToResponse(review);
     }
 
@@ -72,7 +73,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public ReviewResponse updateReview(Long id, ReviewRequest request) {
         Review review = reviewRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Review id", "id", id.toString()));
 
         mapRequestToEntity(review, request);
         review.setUpdatedAt(LocalDateTime.now());
@@ -84,7 +85,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public void deleteReview(Long id) {
         Review review = reviewRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Review id", "id", id.toString()));
         reviewRepository.delete(review);
     }
 
@@ -93,11 +94,11 @@ public class ReviewServiceImpl implements ReviewService {
         review.setRating(request.getRating());
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", request.getCompanyId().toString()));
         review.setCompany(company);
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User id", "userId", request.getUserId().toString()));
         review.setUser(user);
     }
 

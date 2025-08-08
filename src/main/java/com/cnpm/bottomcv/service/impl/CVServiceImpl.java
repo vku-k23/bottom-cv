@@ -3,13 +3,13 @@ package com.cnpm.bottomcv.service.impl;
 import com.cnpm.bottomcv.dto.request.CVRequest;
 import com.cnpm.bottomcv.dto.response.CVResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
+import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.CV;
 import com.cnpm.bottomcv.model.User;
 import com.cnpm.bottomcv.repository.CVRepository;
 import com.cnpm.bottomcv.repository.UserRepository;
 import com.cnpm.bottomcv.service.CVService;
 import com.cnpm.bottomcv.service.FileStorageService;
-import com.cnpm.bottomcv.service.MinioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,7 +49,7 @@ public class CVServiceImpl implements CVService {
     @Override
     public CVResponse getCVById(Long id) {
         CV cv = cvRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("CV not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("CV id", "cvId", id.toString()));
         return mapToResponse(cv);
     }
 
@@ -79,7 +79,7 @@ public class CVServiceImpl implements CVService {
     @Override
     public CVResponse updateCV(Long id, CVRequest request) {
         CV cv = cvRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("CV not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("CV id", "cvId", id.toString()));
 
         if (request.getCvFile() != null && !request.getCvFile().isEmpty()) {
             deleteFile(cv.getCvFile());
@@ -92,7 +92,7 @@ public class CVServiceImpl implements CVService {
         cv.setContent(request.getContent());
         cv.setExperience(request.getExperience());
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User id", "userId", request.getUserId().toString()));
         cv.setUser(user);
 
         cv.setUpdatedAt(LocalDateTime.now());
@@ -104,7 +104,7 @@ public class CVServiceImpl implements CVService {
     @Override
     public void deleteCV(Long id) {
         CV cv = cvRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("CV not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("CV id", "cvId", id.toString()));
         deleteFile(cv.getCvFile());
         cvRepository.delete(cv);
     }
@@ -114,7 +114,7 @@ public class CVServiceImpl implements CVService {
         cv.setCvFile(filePath);
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User id", "userId", request.getUserId().toString()));
         cv.setUser(user);
     }
 

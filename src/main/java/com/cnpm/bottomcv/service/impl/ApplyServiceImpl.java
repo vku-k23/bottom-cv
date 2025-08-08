@@ -3,6 +3,7 @@ package com.cnpm.bottomcv.service.impl;
 import com.cnpm.bottomcv.dto.request.ApplyRequest;
 import com.cnpm.bottomcv.dto.response.ApplyResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
+import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.Apply;
 import com.cnpm.bottomcv.model.CV;
 import com.cnpm.bottomcv.model.Job;
@@ -43,7 +44,7 @@ public class ApplyServiceImpl implements ApplyService {
     @Override
     public ApplyResponse getApplyById(Long id) {
         Apply apply = applyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Apply not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
         return mapToResponse(apply);
     }
 
@@ -73,7 +74,7 @@ public class ApplyServiceImpl implements ApplyService {
     @Override
     public ApplyResponse updateApply(Long id, ApplyRequest request) {
         Apply apply = applyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Apply not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
 
         mapRequestToEntity(apply, request);
         apply.setUpdatedAt(LocalDateTime.now());
@@ -85,7 +86,7 @@ public class ApplyServiceImpl implements ApplyService {
     @Override
     public void deleteApply(Long id) {
         Apply apply = applyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Apply not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
         applyRepository.delete(apply);
     }
 
@@ -94,15 +95,15 @@ public class ApplyServiceImpl implements ApplyService {
         apply.setStatus(request.getStatus());
 
         CV cv = cvRepository.findById(request.getCvId())
-                .orElseThrow(() -> new RuntimeException("CV not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("CV id", "cvId", request.getCvId().toString()));
         apply.setCv(cv);
 
         Job job = jobRepository.findById(request.getJobId())
-                .orElseThrow(() -> new RuntimeException("Job not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Job id", "jobId", request.getJobId().toString()));
         apply.setJob(job);
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User id", "userId", request.getUserId().toString()));
         apply.setUser(user);
     }
 
