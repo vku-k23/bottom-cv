@@ -1,0 +1,394 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1754704126303-1
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_interviews
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: job_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: candidate_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: scheduled_at
+                  type: DATETIME
+              - column:
+                  name: location
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: status
+                  type: VARCHAR(255)
+            tableName: interviews
+  - changeSet:
+      id: 1754704126303-2
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_job_alerts
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: keywords
+                  type: VARCHAR(255)
+              - column:
+                  name: location
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: frequency
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: enabled
+                  type: BOOLEAN
+            tableName: job_alerts
+  - changeSet:
+      id: 1754704126303-3
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_messages
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: sender_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: recipient_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: content
+                  type: VARCHAR(2000)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: read
+                  type: BOOLEAN
+            tableName: messages
+  - changeSet:
+      id: 1754704126303-4
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_payments
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: provider
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: status
+                  type: VARCHAR(255)
+              - column:
+                  name: reference_id
+                  type: VARCHAR(255)
+              - column:
+                  name: currency
+                  type: VARCHAR(255)
+              - column:
+                  name: amount_minor
+                  type: BIGINT
+            tableName: payments
+  - changeSet:
+      id: 1754704126303-5
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_reports
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: reporter_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: resource_type
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: resource_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: reason
+                  type: VARCHAR(1000)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: resolved
+                  type: BOOLEAN
+            tableName: reports
+  - changeSet:
+      id: 1754704126303-6
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_saved_jobs
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: DATETIME
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: job_id
+                  type: BIGINT
+            tableName: saved_jobs
+  - changeSet:
+      id: 1754704126303-7
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: candidate_id
+            baseTableName: interviews
+            constraintName: FK_INTERVIEWS_ON_CANDIDATE
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754704126303-8
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: job_id
+            baseTableName: interviews
+            constraintName: FK_INTERVIEWS_ON_JOB
+            referencedColumnNames: id
+            referencedTableName: jobs
+  - changeSet:
+      id: 1754704126303-9
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: job_alerts
+            constraintName: FK_JOB_ALERTS_ON_USER
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754704126303-10
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: recipient_id
+            baseTableName: messages
+            constraintName: FK_MESSAGES_ON_RECIPIENT
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754704126303-11
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: sender_id
+            baseTableName: messages
+            constraintName: FK_MESSAGES_ON_SENDER
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754704126303-12
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: payments
+            constraintName: FK_PAYMENTS_ON_USER
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754704126303-13
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: reporter_id
+            baseTableName: reports
+            constraintName: FK_REPORTS_ON_REPORTER
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1754704126303-14
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: job_id
+            baseTableName: saved_jobs
+            constraintName: FK_SAVED_JOBS_ON_JOB
+            referencedColumnNames: id
+            referencedTableName: jobs
+  - changeSet:
+      id: 1754704126303-15
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: saved_jobs
+            constraintName: FK_SAVED_JOBS_ON_USER
+            referencedColumnNames: id
+            referencedTableName: users
+

@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.Set;
 
+import com.cnpm.bottomcv.constant.UserStatus;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,7 +19,7 @@ public class UserResponse {
     private String username;
     private Set<RoleResponse> roles;
     private ProfileResponse profile;
-    private boolean enabled;
+    private UserStatus status;
     private String createdAt;
     private String updatedAt;
 }
