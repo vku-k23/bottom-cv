@@ -125,9 +125,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 if (alreadyVT.getStatus() == StatusVerificationToken.WAITING) {
                     throw new BadRequestException(
                             "Forgot password request is already in progress.");
-                } else if (alreadyVT.getStatus() == StatusVerificationToken.DONE) {
-                    throw new BadRequestException(
-                            "Forgot password request has already been completed.");
                 }
             }
 
@@ -180,7 +177,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found."));
         user.setPassword(passwordEncoder.encode(newPassword));
 
-        verificationTokenService.updateStatus(token, StatusVerificationToken.DONE);
+        verificationTokenService.deleteVerificationToken(token);
 
         userRepository.save(user);
 
@@ -192,7 +189,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (email == null || !Pattern.compile(PatternField.EMAIL_PATTERN).matcher(email).matches()) {
             throw new IllegalArgumentException("Invalid email format.");
         } else if (!userRepository.isUserActiveWithEmail(email)) {
-            throw new IllegalArgumentException("Email does not exist.");
+            throw new ResourceAlreadyExistException("Email does not exists.");
         }
 
         VerificationToken verificationToken = verificationTokenService.getVerificationTokenByEmail(email);
@@ -257,7 +254,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             VerificationToken verificationToken = verificationTokenService.getVerificationToken(token);
             if (verificationToken == null
                     || verificationToken.getType() != TypeVerificationToken.FORGOT_PASSWORD) {
-                throw new IllegalArgumentException("Invalid forgot password token.");
+                throw new BadRequestException("Invalid forgot password token.");
             }
             if (verificationToken.getStatus() != StatusVerificationToken.WAITING) {
                 throw new IllegalArgumentException("Forgot password token is not in waiting status.");
