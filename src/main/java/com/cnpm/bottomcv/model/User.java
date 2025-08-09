@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.model;
 
+import com.cnpm.bottomcv.constant.UserStatus;
 import com.cnpm.bottomcv.dto.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -34,11 +35,7 @@ public class User extends BaseEntity implements UserDetails {
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonManagedReference
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
@@ -54,6 +51,10 @@ public class User extends BaseEntity implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
     private List<CV> cvs = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private UserStatus status = UserStatus.PENDING;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -79,7 +80,7 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return status == UserStatus.ACTIVE;
     }
 
     @Override
@@ -89,8 +90,10 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
         User user = (User) obj;
         return Objects.equals(id, user.id) &&
                 Objects.equals(username, user.username);

@@ -16,13 +16,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication API", description = "The API of JWT authentication")
-@RequestMapping(value = "/api/v1/auth", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(value = "/api/v1/auth", produces = {MediaType.APPLICATION_JSON_VALUE})
 @RestController
 @RequiredArgsConstructor
 public class AuthenticationController {
@@ -69,5 +66,41 @@ public class AuthenticationController {
                             .body(new RefreshTokenResponse(accessToken, requestRefreshToken));
                 })
                 .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+    }
+
+    @PostMapping("/resend-verification-email")
+    public ResponseEntity<Void> resendVerificationEmail(@RequestParam String email) {
+        authenticationService.sendVerificationEmail(email);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<Void> verifyEmail(@RequestParam String token) {
+        authenticationService.confirmVerificationEmail(token);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestParam String request) {
+        authenticationService.forgotPassword(request);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping("/confirm-forgot-password")
+    public ResponseEntity<Void> confirmForgotPassword(@RequestParam String token) {
+        authenticationService.confirmForgotPassword(token);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
+        authenticationService.resetPassword(token, newPassword);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestParam String refreshToken) {
+        authenticationService.logout(refreshToken);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

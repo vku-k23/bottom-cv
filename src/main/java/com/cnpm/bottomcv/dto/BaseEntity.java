@@ -1,6 +1,6 @@
 package com.cnpm.bottomcv.dto;
 
-
+import com.cnpm.bottomcv.constant.TimeFormat;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
@@ -25,7 +25,7 @@ public class BaseEntity {
 
     @CreatedDate
     @Column(updatable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = TimeFormat.DATE_TIME_FORMAT)
     private LocalDateTime createdAt;
 
     @CreatedBy
@@ -34,7 +34,7 @@ public class BaseEntity {
 
     @LastModifiedDate
     @Column(updatable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = TimeFormat.DATE_TIME_FORMAT)
     private LocalDateTime updatedAt;
 
     @LastModifiedBy

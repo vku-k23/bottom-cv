@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.TimeFormat;
 import com.cnpm.bottomcv.dto.request.UserRequest;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.ProfileResponse;
@@ -39,7 +40,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ListResponse<UserResponse> allUsers(int pageNo, int pageSize, String sortBy, String sortType) {
-        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
         Page<User> pageProfiles = userRepository.findAll(pageable);
         List<User> users = pageProfiles.getContent();
@@ -56,7 +58,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getUserById(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User id", "id", id.toString()));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User id", "id", id.toString()));
         return mapToUserResponse(user);
     }
 
@@ -135,7 +138,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id.toString()));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id.toString()));
         userRepository.delete(user);
     }
 
@@ -152,9 +156,9 @@ public class UserServiceImpl implements UserService {
                 .userCode(user.getUserCode())
                 .profile(mapToProfileResponse(user.getProfile()))
                 .roles(mapToRoleResponse(user.getRoles()))
-                .enabled(user.isEnabled())
-                .createdAt(user.getCreatedAt().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")))
-                .updatedAt(user.getUpdatedAt().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")))
+                .status(user.getStatus())
+                .createdAt(user.getCreatedAt().format(DateTimeFormatter.ofPattern(TimeFormat.DATE_TIME_FORMAT)))
+                .updatedAt(user.getUpdatedAt().format(DateTimeFormatter.ofPattern(TimeFormat.DATE_TIME_FORMAT)))
                 .build();
     }
 
@@ -169,8 +173,8 @@ public class UserServiceImpl implements UserService {
                 .email(profile.getEmail())
                 .avatar(profile.getAvatar())
                 .description(profile.getDescription())
-                .createdAt(profile.getCreatedAt().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")))
-                .updatedAt(profile.getUpdatedAt().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")))
+                .createdAt(profile.getCreatedAt().format(DateTimeFormatter.ofPattern(TimeFormat.DATE_TIME_FORMAT)))
+                .updatedAt(profile.getUpdatedAt().format(DateTimeFormatter.ofPattern(TimeFormat.DATE_TIME_FORMAT)))
                 .build();
     }
 
@@ -183,4 +187,3 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toSet());
     }
 }
-

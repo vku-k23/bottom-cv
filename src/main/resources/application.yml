@@ -4,6 +4,7 @@ server:
 spring:
   application:
     name: bottom-cv
+
   datasource:
     url: jdbc:mysql://localhost:3307/bottom_cv?createDatabaseIfNotExist=true
     username: root
@@ -18,6 +19,13 @@ spring:
     default-schema: bottom_cv
     liquibase-schema: bottom_cv
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+      timeout: 6000
+
   jpa:
     hibernate:
       ddl-auto: none
@@ -31,6 +39,25 @@ spring:
       secret-key: L6OovFfxRA/YmnfxL44ou2umFmoFe1fDMK/TlEyllNoGOViiY2MelWE53EObFtfA+mg37xjJJw0m1ePB/o1maA==
       expirationMs: 900000 # 15 minutes
       refreshExpirationMs: 604800000 # 7 days
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_PASSWORD}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
+            protocols: TLSv1.2 TLSv1.3
+          timeout: 5000
+    protocol: smtp
 
 #  rabbitmq:
 #    host: localhost
@@ -63,6 +90,7 @@ info:
     version: "1.0.0"
 
 bottom-cv:
+  domain: "http://localhost:8088"
   message: "From bottom application, we hope you can find the best job for you"
   contactInfo:
     name: "Nguyen Quoc Viet"
@@ -70,6 +98,14 @@ bottom-cv:
   onCallSupport:
     - (+84)123456789
     - (+84)123456789
+  brand:
+    name: "BottomCV"
+    logo-url: "https://i.postimg.cc/4xcnS1yG/bottomcv.png"
+    support-email: "support@bottomcv.com"
+  mail:
+    from: "noreply@bottomcv.com"
+    from-name: "BottomCV"
+    reply-to: "noreply@bottomcv.com"
 
 logging:
   level:

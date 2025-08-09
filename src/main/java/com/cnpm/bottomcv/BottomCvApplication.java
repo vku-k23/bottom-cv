@@ -13,6 +13,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EnableConfigurationProperties(AppContactDto.class)
@@ -44,6 +45,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
         scheme = "bearer",
         bearerFormat = "JWT"
 )
+@EnableAsync
 public class BottomCvApplication {
 
     public static void main(String[] args) {
