@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -28,6 +27,7 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final AsyncEmailSender asyncEmailSender;
 
     @Value("${bottom-cv.domain}")
     private String domain;
@@ -58,7 +58,6 @@ public class EmailServiceImpl implements EmailService {
         return String.format("%s/api/v1/auth/confirm-forgot-password?token=%s", domain, token);
     }
 
-
     @Override
     public void sendVerificationEmail(String email, String token) {
         if (!Pattern.compile(PatternField.EMAIL_PATTERN).matcher(email).matches()) {
@@ -86,7 +85,6 @@ public class EmailServiceImpl implements EmailService {
 
         sendEmail("verify-email", email, subject, variables);
     }
-
 
     @Override
     public void sendPasswordResetEmail(String email, String token) {
@@ -116,8 +114,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail("reset-password", email, subject, variables);
     }
 
-    @Async
-    protected void sendEmail(String template, String toEmail, String subject, Map<String, Object> variables) {
+    private void sendEmail(String template, String toEmail, String subject, Map<String, Object> variables) {
         Context context = new Context();
         variables.forEach(context::setVariable);
 
@@ -142,10 +139,10 @@ public class EmailServiceImpl implements EmailService {
             mimeMessage.addHeader("X-Priority", "3");
             mimeMessage.addHeader("X-MSMail-Priority", "Normal");
 
-            mailSender.send(mimeMessage);
-            log.info("Email [{}] sent successfully to {}", subject, toEmail);
+            asyncEmailSender.send(mimeMessage);
+            log.info("Email [{}] dispatched asynchronously to {}", subject, toEmail);
         } catch (Exception e) {
-            log.error("Failed to send email [{}] to {}", subject, toEmail, e);
+            log.error("Failed to build email [{}] to {}", subject, toEmail, e);
             throw new RuntimeException("Failed to send email", e);
         }
     }
