@@ -192,7 +192,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (email == null || !Pattern.compile(PatternField.EMAIL_PATTERN).matcher(email).matches()) {
             throw new IllegalArgumentException("Invalid email format.");
         } else if (!userRepository.isUserActiveWithEmail(email)) {
-            throw new ResourceNotFoundException("Email does not exist.");
+            throw new IllegalArgumentException("Email does not exist.");
         }
 
         VerificationToken verificationToken = verificationTokenService.getVerificationTokenByEmail(email);
