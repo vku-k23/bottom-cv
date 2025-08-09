@@ -119,13 +119,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 throw new ResourceNotFoundException("Email", "email", request);
             }
 
+            if (!userRepository.isUserActiveWithEmail(request)) {
+                throw new BadRequestException("Email is not active. Please verify your email first.");
+            }
+
             VerificationToken alreadyVT = verificationTokenService.getVerificationTokenByEmail(request);
 
-            if (alreadyVT != null && alreadyVT.getType() == TypeVerificationToken.FORGOT_PASSWORD) {
-                if (alreadyVT.getStatus() == StatusVerificationToken.WAITING) {
-                    throw new BadRequestException(
-                            "Forgot password request is already in progress.");
-                }
+            if (alreadyVT != null &&
+                    alreadyVT.getType() == TypeVerificationToken.FORGOT_PASSWORD &&
+                    (alreadyVT.getStatus() == StatusVerificationToken.WAITING ||
+                            alreadyVT.getStatus() == StatusVerificationToken.IN_PROGRESS)) {
+                return;
             }
 
             String token = buildResetPasswordToken(request);
@@ -147,6 +151,28 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    public void confirmForgotPassword(String token) {
+        try {
+            VerificationToken verificationToken = verificationTokenService.getVerificationToken(token);
+            if (verificationToken == null
+                    || verificationToken.getType() != TypeVerificationToken.FORGOT_PASSWORD) {
+                throw new BadRequestException("Invalid forgot password token.");
+            }
+            if (verificationToken.getStatus() != StatusVerificationToken.WAITING) {
+                throw new IllegalArgumentException("Forgot password token is not in waiting status.");
+            }
+            jwtService.extractUsernameIgnoreExpiration(token);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid forgot password token.");
+        }
+
+        if (jwtService.isTokenExpired(token)) {
+            throw new IllegalArgumentException("Forgot password token has expired.");
+        }
+        verificationTokenService.updateStatus(token, StatusVerificationToken.IN_PROGRESS);
+    }
+
+    @Override
     public void resetPassword(String token, String newPassword) {
         Pattern passwordPolicy = Pattern
                 .compile(PatternField.PASSWORD_PATTERN);
@@ -155,8 +181,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         final String username;
+        VerificationToken verificationToken;
         try {
-            VerificationToken verificationToken = verificationTokenService.getVerificationToken(token);
+            verificationToken = verificationTokenService.getVerificationToken(token);
             if (verificationToken == null
                     || verificationToken.getType() != TypeVerificationToken.FORGOT_PASSWORD) {
                 throw new IllegalArgumentException("Invalid reset token.");
@@ -175,6 +202,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found."));
+
         user.setPassword(passwordEncoder.encode(newPassword));
 
         verificationTokenService.deleteVerificationToken(token);
@@ -188,17 +216,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public void sendVerificationEmail(String email) {
         if (email == null || !Pattern.compile(PatternField.EMAIL_PATTERN).matcher(email).matches()) {
             throw new IllegalArgumentException("Invalid email format.");
-        } else if (!userRepository.isUserActiveWithEmail(email)) {
-            throw new ResourceAlreadyExistException("Email does not exists.");
+        }
+
+        if (!userRepository.existsByEmail(email)) {
+            throw new ResourceNotFoundException("Email", "email", email);
+        }
+
+        if (userRepository.isUserActiveWithEmail(email)) {
+            throw new BadRequestException("Email is already verified.");
         }
 
         VerificationToken verificationToken = verificationTokenService.getVerificationTokenByEmail(email);
 
         if (verificationToken != null && verificationToken.getType() == TypeVerificationToken.EMAIL) {
             if (verificationToken.getStatus() == StatusVerificationToken.WAITING) {
-                throw new BadRequestException("Email verification is already in progress.");
-            } else if (verificationToken.getStatus() == StatusVerificationToken.DONE) {
-                throw new BadRequestException("Email is already verified.");
+                return;
             }
         }
 
@@ -211,6 +243,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         .email(email)
                         .build(),
                 15);
+
         emailService.sendVerificationEmail(email, token);
     }
 
@@ -246,28 +279,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         verificationTokenService.updateStatus(token, StatusVerificationToken.DONE);
 
         userRepository.save(user);
-    }
-
-    @Override
-    public void confirmForgotPassword(String token) {
-        try {
-            VerificationToken verificationToken = verificationTokenService.getVerificationToken(token);
-            if (verificationToken == null
-                    || verificationToken.getType() != TypeVerificationToken.FORGOT_PASSWORD) {
-                throw new BadRequestException("Invalid forgot password token.");
-            }
-            if (verificationToken.getStatus() != StatusVerificationToken.WAITING) {
-                throw new IllegalArgumentException("Forgot password token is not in waiting status.");
-            }
-            jwtService.extractUsernameIgnoreExpiration(token);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid forgot password token.");
-        }
-
-        if (jwtService.isTokenExpired(token)) {
-            throw new IllegalArgumentException("Forgot password token has expired.");
-        }
-        verificationTokenService.updateStatus(token, StatusVerificationToken.IN_PROGRESS);
     }
 
     @Override

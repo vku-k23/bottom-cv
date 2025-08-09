@@ -68,7 +68,7 @@ public class AuthenticationController {
                 .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
     }
 
-    @PostMapping("/resend-verification-email")
+    @PostMapping("/send-verification-email")
     public ResponseEntity<Void> resendVerificationEmail(@RequestParam String email) {
         authenticationService.sendVerificationEmail(email);
         return ResponseEntity.status(HttpStatus.OK).build();
