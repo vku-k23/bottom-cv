@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.dto.response;
 
+import com.cnpm.bottomcv.constant.TimeFormat;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,6 @@ public class ErrorResponse {
     private String errorMessage;
 
     @Schema(description = "Time representing when the error happened")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = TimeFormat.DATE_TIME_FORMAT)
     private LocalDateTime errorTime;
 }

@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1754727959365-1
+      author: vietquoc
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addNotNullConstraint:
+            columnDataType: VARCHAR(255)
+            columnName: status
+            tableName: users
+            validate: true
+
