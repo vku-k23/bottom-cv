@@ -5,6 +5,7 @@ import com.cnpm.bottomcv.dto.response.CategoryResponse;
 import com.cnpm.bottomcv.dto.response.CompanyResponse;
 import com.cnpm.bottomcv.dto.response.JobResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
+import com.cnpm.bottomcv.exception.BadRequestException;
 import com.cnpm.bottomcv.exception.ResourceAlreadyExistException;
 import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.Category;
@@ -12,11 +13,14 @@ import com.cnpm.bottomcv.model.Company;
 import com.cnpm.bottomcv.model.Job;
 import com.cnpm.bottomcv.repository.CompanyRepository;
 import com.cnpm.bottomcv.service.CompanyService;
+import com.cnpm.bottomcv.constant.RoleType;
+import com.cnpm.bottomcv.utils.Helper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,68 +34,106 @@ public class CompanyServiceImpl implements CompanyService {
     private final CompanyRepository companyRepository;
 
     @Override
-    public CompanyResponse createCompany(CompanyRequest request) {
-        if (companyRepository.existsBySlug(request.getSlug())) {
-            throw new ResourceAlreadyExistException("Slug already exists");
+    public CompanyResponse createCompany(CompanyRequest request, Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        switch (currentRole) {
+            case EMPLOYER:
+            case ADMIN:
+                if (companyRepository.existsBySlug(request.getSlug())) {
+                    throw new ResourceAlreadyExistException("Slug already exists");
+                }
+                Company company = new Company();
+                mapRequestToEntity(company, request);
+
+                company.setCreatedAt(LocalDateTime.now());
+                company.setCreatedBy(authentication.getName());
+
+                companyRepository.save(company);
+                return mapToResponse(company);
+            default:
+                throw new BadRequestException("You do not have permission to create a company.");
         }
-
-        Company company = new Company();
-        mapRequestToEntity(company, request);
-
-        company.setCreatedAt(LocalDateTime.now());
-        company.setCreatedBy("system");
-
-        companyRepository.save(company);
-        return mapToResponse(company);
     }
 
     @Override
-    public CompanyResponse getCompanyById(Long id) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
-        return mapToResponse(company);
-    }
-
-    @Override
-    public ListResponse<CompanyResponse> getAllCompanies(int pageNo, int pageSize, String sortBy, String sortType) {
-        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
-        Page<Company> pageCompany = companyRepository.findAll(pageable);
-        List<Company> companyContent = pageCompany.getContent();
-
-        return ListResponse.<CompanyResponse>builder()
-                .data(mapToCompanyListResponse(companyContent))
-                .pageNo(pageCompany.getNumber())
-                .pageSize(pageCompany.getSize())
-                .totalElements((int) pageCompany.getTotalElements())
-                .totalPages(pageCompany.getTotalPages())
-                .isLast(pageCompany.isLast())
-                .build();
-    }
-
-    @Override
-    public CompanyResponse updateCompany(Long id, CompanyRequest request) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
-
-        if (!company.getSlug().equals(request.getSlug()) && companyRepository.existsBySlug(request.getSlug())) {
-            throw new ResourceAlreadyExistException("Slug already exists");
+    public CompanyResponse getCompanyById(Long id, Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        switch (currentRole) {
+            case CANDIDATE:
+            case EMPLOYER:
+            case ADMIN:
+                Company company = companyRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
+                return mapToResponse(company);
+            default:
+                throw new BadRequestException("You do not have permission to view company information.");
         }
-
-        mapRequestToEntity(company, request);
-
-        company.setUpdatedAt(LocalDateTime.now());
-        company.setUpdatedBy("system");
-
-        companyRepository.save(company);
-        return mapToResponse(company);
     }
 
     @Override
-    public void deleteCompany(Long id) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
-        companyRepository.delete(company);
+    public ListResponse<CompanyResponse> getAllCompanies(int pageNo, int pageSize, String sortBy, String sortType,
+            Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        switch (currentRole) {
+            case CANDIDATE:
+            case EMPLOYER:
+            case ADMIN:
+                Sort sortObj = sortType.equalsIgnoreCase("ASC") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+                Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
+                Page<Company> pageCompany = companyRepository.findAll(pageable);
+                List<Company> companyContent = pageCompany.getContent();
+
+                return ListResponse.<CompanyResponse>builder()
+                        .data(mapToCompanyListResponse(companyContent))
+                        .pageNo(pageCompany.getNumber())
+                        .pageSize(pageCompany.getSize())
+                        .totalElements((int) pageCompany.getTotalElements())
+                        .totalPages(pageCompany.getTotalPages())
+                        .isLast(pageCompany.isLast())
+                        .build();
+            default:
+                throw new BadRequestException("You do not have permission to view companies.");
+        }
+    }
+
+    @Override
+    public CompanyResponse updateCompany(Long id, CompanyRequest request, Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        switch (currentRole) {
+            case EMPLOYER:
+            case ADMIN:
+                Company company = companyRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
+
+                if (!company.getSlug().equals(request.getSlug()) && companyRepository.existsBySlug(request.getSlug())) {
+                    throw new ResourceAlreadyExistException("Slug already exists");
+                }
+
+                mapRequestToEntity(company, request);
+
+                company.setUpdatedAt(LocalDateTime.now());
+                company.setUpdatedBy(authentication.getName());
+
+                companyRepository.save(company);
+                return mapToResponse(company);
+            default:
+                throw new BadRequestException("You do not have permission to update a company.");
+        }
+    }
+
+    @Override
+    public void deleteCompany(Long id, Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        switch (currentRole) {
+            case EMPLOYER:
+            case ADMIN:
+                Company company = companyRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
+                companyRepository.delete(company);
+                break;
+            default:
+                throw new BadRequestException("You do not have permission to delete a company.");
+        }
     }
 
     private List<CompanyResponse> mapToCompanyListResponse(List<Company> companyContent) {
