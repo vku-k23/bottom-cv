@@ -17,17 +17,26 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(@NotBlank(message = "Username is required") @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters") String username);
 
     @Query("""
-        SELECT CASE
-            WHEN u.status = 'ACTIVE'
-             AND p.email = :email
-             AND p.email IS NOT NULL
-             AND p.email <> ''
-            THEN TRUE
-            ELSE FALSE
-        END
-        FROM User u
-        JOIN u.profile p
-        WHERE p.email = :email
-    """)
+                SELECT CASE WHEN u.status = 'ACTIVE' THEN TRUE ELSE FALSE END
+                FROM User u
+                JOIN u.profile p
+                WHERE p.email = :email
+            """)
     boolean isUserActiveWithEmail(@Param("email") String email);
+
+    @Query("""
+                SELECT CASE WHEN COUNT(u) > 0 THEN TRUE ELSE FALSE END
+                FROM User u
+                JOIN u.profile p
+                WHERE p.email = :email
+            """)
+    boolean existsByEmail(String email);
+
+    @Query("""
+                SELECT u
+                FROM User u
+                JOIN u.profile p
+                WHERE p.email = :email
+            """)
+    Optional<User> findByEmail(String name);
 }
