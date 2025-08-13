@@ -27,8 +27,8 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ListResponse<ProfileResponse> allProfiles(int pageNo, int pageSize, String sortBy, String sortType) {
-        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
+        Sort sortObj = sortType.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
+                Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
         Page<Profile> pageProfiles = profileRepository.findAll(pageable);
         List<Profile> profiles = pageProfiles.getContent();
