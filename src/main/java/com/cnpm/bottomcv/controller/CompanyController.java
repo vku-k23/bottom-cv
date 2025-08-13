@@ -55,21 +55,25 @@ public class CompanyController {
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortType) {
-        return ResponseEntity.ok(companyService.getAllCompanies(pageNo, pageSize, sortBy, sortType));
+        return ResponseEntity.ok(
+                companyService.getAllCompanies(pageNo, pageSize, sortBy, sortType));
     }
 
     // Front APIs (for client web - public)
     @GetMapping("/front/companies/{id}")
+    @PreAuthorize("hasAnyRole('CANDIDATE', 'EMPLOYER', 'ADMIN')")
     public ResponseEntity<CompanyResponse> getCompanyByIdForFront(@PathVariable Long id) {
         return ResponseEntity.ok(companyService.getCompanyById(id));
     }
 
     @GetMapping("/front/companies")
+    @PreAuthorize("hasAnyRole('CANDIDATE', 'EMPLOYER', 'ADMIN')")
     public ResponseEntity<ListResponse<CompanyResponse>> getAllCompaniesForFront(
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortType) {
-        return ResponseEntity.ok(companyService.getAllCompanies(pageNo, pageSize, sortBy, sortType));
+        return ResponseEntity.ok(
+                companyService.getAllCompanies(pageNo, pageSize, sortBy, sortType));
     }
 }
