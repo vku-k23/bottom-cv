@@ -80,7 +80,7 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @GetMapping("/forgot-password")
+    @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(@RequestParam String request) {
         authenticationService.forgotPassword(request);
         return ResponseEntity.status(HttpStatus.OK).build();
