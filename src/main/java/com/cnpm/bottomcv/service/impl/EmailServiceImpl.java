@@ -29,7 +29,7 @@ public class EmailServiceImpl implements EmailService {
     private final TemplateEngine templateEngine;
     private final AsyncEmailSender asyncEmailSender;
 
-    @Value("${bottom-cv.domain}")
+    @Value("${bottom-cv.client}")
     private String domain;
 
     @Value("${bottom-cv.brand.name:}")
@@ -51,11 +51,11 @@ public class EmailServiceImpl implements EmailService {
     private String mailReplyTo;
 
     private String buildVerificationUrl(String token) {
-        return String.format("%s/api/v1/auth/verify-email?token=%s", domain, token);
+        return String.format("%s/auth/verify-email?token=%s", domain, token);
     }
 
     private String buildResetPasswordUrl(String token) {
-        return String.format("%s/api/v1/auth/confirm-forgot-password?token=%s", domain, token);
+        return String.format("%s/auth/confirm-forgot-password?token=%s", domain, token);
     }
 
     @Override

@@ -91,6 +91,7 @@ info:
 
 bottom-cv:
   domain: "http://localhost:8088"
+  client: "http://localhost:3000"
   message: "From bottom application, we hope you can find the best job for you"
   contactInfo:
     name: "Nguyen Quoc Viet"

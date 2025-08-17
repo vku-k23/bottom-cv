@@ -281,27 +281,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         userRepository.save(user);
     }
 
-    @Override
-    public void confirmForgotPassword(String token) {
-        try {
-            VerificationToken verificationToken = verificationTokenService.getVerificationToken(token);
-            if (verificationToken == null
-                    || verificationToken.getType() != TypeVerificationToken.FORGOT_PASSWORD) {
-                throw new BadRequestException("Invalid forgot password token.");
-            }
-            if (verificationToken.getStatus() != StatusVerificationToken.WAITING) {
-                throw new IllegalArgumentException("Forgot password token is not in waiting status.");
-            }
-            jwtService.extractUsernameIgnoreExpiration(token);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid forgot password token.");
-        }
 
-        if (jwtService.isTokenExpired(token)) {
-            throw new IllegalArgumentException("Forgot password token has expired.");
-        }
-        verificationTokenService.updateStatus(token, StatusVerificationToken.IN_PROGRESS);
-    }
 
     @Override
     public void logout(String refreshToken) {
