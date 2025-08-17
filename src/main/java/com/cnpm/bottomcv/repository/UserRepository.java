@@ -30,7 +30,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 JOIN u.profile p
                 WHERE p.email = :email
             """)
-    boolean existsByEmail(String email);
+    boolean existsByEmail(@Param("email") String email);
 
     @Query("""
                 SELECT u
@@ -38,5 +38,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 JOIN u.profile p
                 WHERE p.email = :email
             """)
-    Optional<User> findByEmail(String name);
+    Optional<User> findByEmail(@Param("email") String email);
 }
