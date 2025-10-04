@@ -14,7 +14,8 @@ import com.cnpm.bottomcv.model.ai.Recommendation;
 import com.cnpm.bottomcv.repository.*;
 import com.cnpm.bottomcv.repository.ai.RecommendationRepository;
 import com.cnpm.bottomcv.service.JobService;
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,8 +54,9 @@ public class JobServiceImpl implements JobService {
   private final RecommendationRepository recommendationRepository;
   private boolean modelAvailable = false;
 
-  @PostConstruct
-  public void init() throws Exception {
+  @EventListener(ApplicationReadyEvent.class)
+  @Transactional(readOnly = true)
+  public void init() {
     // Try to load the trained model
     try {
       File modelFile = new File("recommendation-model.zip");
@@ -72,7 +75,9 @@ public class JobServiceImpl implements JobService {
 
     // Build TF-IDF index on startup if possible
     try {
-      tfidfVectorizer.buildIndex(userRepository.findAll(), jobRepository.findAll());
+      List<User> users = userRepository.findAll();
+      List<Job> jobs = jobRepository.findAll();
+      tfidfVectorizer.buildIndex(users, jobs);
       log.info("TF-IDF index built successfully");
     } catch (Exception e) {
       log.error("Failed to build TF-IDF index: {}", e.getMessage());
