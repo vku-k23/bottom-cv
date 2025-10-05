@@ -9,26 +9,35 @@ import com.cnpm.bottomcv.repository.RoleRepository;
 import com.cnpm.bottomcv.repository.UserRepository;
 import com.cnpm.bottomcv.service.AuthenticationService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Set;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final AuthenticationService authenticationService;
 
-    @Override
+    public DataInitializer(
+            RoleRepository roleRepository,
+            UserRepository userRepository,
+            @Lazy AuthenticationService authenticationService) {
+        this.roleRepository = roleRepository;
+        this.userRepository = userRepository;
+        this.authenticationService = authenticationService;
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
     @Transactional
-    public void run(String... args) throws Exception {
+    public void initializeData() {
         if (roleRepository.count() == 0) {
             Role roleUser = Role.builder()
                     .name(RoleType.CANDIDATE)
@@ -48,7 +57,7 @@ public class DataInitializer implements CommandLineRunner {
 
             log.info("Initialized default roles in the database.");
         }
-        
+
         if (!userRepository.existsByUsername("admin")) {
             Role roleAdmin = roleRepository.findByName(RoleType.ADMIN)
                     .orElseThrow(() -> new ResourceNotFoundException("Role id", "id", RoleType.ADMIN.toString()));
