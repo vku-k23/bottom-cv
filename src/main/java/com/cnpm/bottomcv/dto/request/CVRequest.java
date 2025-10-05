@@ -15,8 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 public class CVRequest {
 
-    @NotNull(message = "User ID is required")
-    private Long userId;
+    // userId will be automatically set from authentication context
 
     @NotBlank(message = "Title is required")
     private String title;

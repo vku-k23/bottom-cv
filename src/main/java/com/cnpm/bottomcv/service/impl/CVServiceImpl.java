@@ -7,7 +7,6 @@ import com.cnpm.bottomcv.exception.ResourceNotFoundException;
 import com.cnpm.bottomcv.model.CV;
 import com.cnpm.bottomcv.model.User;
 import com.cnpm.bottomcv.repository.CVRepository;
-import com.cnpm.bottomcv.repository.UserRepository;
 import com.cnpm.bottomcv.service.CVService;
 import com.cnpm.bottomcv.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,15 +31,20 @@ import java.util.UUID;
 public class CVServiceImpl implements CVService {
 
   private final CVRepository cvRepository;
-  private final UserRepository userRepository;
   private final FileStorageService fileStorageService;
 
   @Override
   public CVResponse createCV(CVRequest request) {
     String filePath = saveFile(request.getCvFile());
+    User currentUser = getCurrentUser();
 
     CV cv = new CV();
-    mapRequestToEntity(cv, request, filePath);
+    cv.setTitle(request.getTitle());
+    cv.setCvFile(filePath);
+    cv.setSkills(request.getSkills());
+    cv.setContent(request.getContent());
+    cv.setExperience(request.getExperience());
+    cv.setUser(currentUser);
     cv.setCreatedAt(LocalDateTime.now());
     cv.setCreatedBy("system");
     cvRepository.save(cv);
@@ -72,12 +77,12 @@ public class CVServiceImpl implements CVService {
   }
 
   @Override
-  public ListResponse<CVResponse> getAllMyCVs(String username, int pageNo, int pageSize, String sortBy,
+  public ListResponse<CVResponse> getAllMyCVs(Long userId, int pageNo, int pageSize, String sortBy,
       String sortType) {
     Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
         : Sort.by(sortBy).descending();
     Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
-    Page<CV> pageCompany = cvRepository.findAllByUserUsername(username, pageable);
+    Page<CV> pageCompany = cvRepository.findAllByUserId(userId, pageable);
     List<CV> companyContent = pageCompany.getContent();
 
     return ListResponse.<CVResponse>builder()
@@ -111,9 +116,7 @@ public class CVServiceImpl implements CVService {
     cv.setSkills(request.getSkills());
     cv.setContent(request.getContent());
     cv.setExperience(request.getExperience());
-    User user = userRepository.findById(request.getUserId())
-        .orElseThrow(() -> new ResourceNotFoundException("User id", "userId", request.getUserId().toString()));
-    cv.setUser(user);
+    // User remains the same, no need to change it
 
     cv.setUpdatedAt(LocalDateTime.now());
     cv.setUpdatedBy("system");
@@ -129,16 +132,9 @@ public class CVServiceImpl implements CVService {
     cvRepository.delete(cv);
   }
 
-  private void mapRequestToEntity(CV cv, CVRequest request, String filePath) {
-    cv.setTitle(request.getTitle());
-    cv.setCvFile(filePath);
-    cv.setSkills(request.getSkills());
-    cv.setContent(request.getContent());
-    cv.setExperience(request.getExperience());
-
-    User user = userRepository.findById(request.getUserId())
-        .orElseThrow(() -> new ResourceNotFoundException("User id", "userId", request.getUserId().toString()));
-    cv.setUser(user);
+  private User getCurrentUser() {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    return user;
   }
 
   private CVResponse mapToResponse(CV cv) {
