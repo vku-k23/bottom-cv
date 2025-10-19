@@ -5,10 +5,12 @@ import com.cnpm.bottomcv.dto.RegisterUserDto;
 import com.cnpm.bottomcv.dto.request.RefreshTokenRequest;
 import com.cnpm.bottomcv.dto.response.LoginResponse;
 import com.cnpm.bottomcv.dto.response.RefreshTokenResponse;
+import com.cnpm.bottomcv.dto.response.UserResponse;
 import com.cnpm.bottomcv.model.RefreshToken;
 import com.cnpm.bottomcv.model.User;
 import com.cnpm.bottomcv.service.AuthenticationService;
 import com.cnpm.bottomcv.service.RefreshTokenService;
+import com.cnpm.bottomcv.service.UserService;
 import com.cnpm.bottomcv.service.jwt.JwtService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,16 +18,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication API", description = "The API of JWT authentication")
-@RequestMapping(value = "/api/v1/auth", produces = {MediaType.APPLICATION_JSON_VALUE})
+@RequestMapping(value = "/api/v1/auth", produces = { MediaType.APPLICATION_JSON_VALUE })
 @RestController
 @RequiredArgsConstructor
 public class AuthenticationController {
     private final JwtService jwtService;
     private final AuthenticationService authenticationService;
     private final RefreshTokenService refreshTokenService;
+    private final UserService userService;
 
     @PostMapping("/signup")
     public ResponseEntity<User> register(@Valid @RequestBody RegisterUserDto registerUserDto) {
@@ -102,5 +107,15 @@ public class AuthenticationController {
     public ResponseEntity<Void> logout(@RequestParam String refreshToken) {
         authenticationService.logout(refreshToken);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+        UserResponse userResponse = userService.getUserById(currentUser.getId());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(userResponse);
     }
 }
