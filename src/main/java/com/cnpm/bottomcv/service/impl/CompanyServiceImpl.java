@@ -17,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -39,7 +41,8 @@ public class CompanyServiceImpl implements CompanyService {
         mapRequestToEntity(company, request);
 
         company.setCreatedAt(LocalDateTime.now());
-        company.setCreatedBy("system");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        company.setCreatedBy(auth != null ? auth.getName() : "system");
 
         companyRepository.save(company);
         return mapToResponse(company);
@@ -54,7 +57,7 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public ListResponse<CompanyResponse> getAllCompanies(int pageNo, int pageSize, String sortBy, String sortType) {
-        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Sort sortObj = sortType.equalsIgnoreCase("ASC") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
         Page<Company> pageCompany = companyRepository.findAll(pageable);
         List<Company> companyContent = pageCompany.getContent();
@@ -81,7 +84,8 @@ public class CompanyServiceImpl implements CompanyService {
         mapRequestToEntity(company, request);
 
         company.setUpdatedAt(LocalDateTime.now());
-        company.setUpdatedBy("system");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        company.setUpdatedBy(auth != null ? auth.getName() : "system");
 
         companyRepository.save(company);
         return mapToResponse(company);
