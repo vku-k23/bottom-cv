@@ -1,11 +1,15 @@
 package com.cnpm.bottomcv.service;
 
+import com.cnpm.bottomcv.dto.request.UpdateUserRolesRequest;
+import com.cnpm.bottomcv.dto.request.UpdateUserStatusRequest;
+import com.cnpm.bottomcv.dto.response.UserResponse;
+
 public interface AdminUserManagementService {
-    void updateRoles(Long userId);
+    UserResponse updateRoles(Long userId, UpdateUserRolesRequest request);
 
-    void activate(Long userId);
+    UserResponse activate(Long userId);
 
-    void deactivate(Long userId);
+    UserResponse deactivate(Long userId, UpdateUserStatusRequest request);
 
     void impersonate(Long userId);
 

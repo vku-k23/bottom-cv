@@ -25,6 +25,8 @@ public class CV extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private StatusJob status = StatusJob.ACTIVE;
 
     private String skills;

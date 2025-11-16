@@ -40,6 +40,11 @@ public class JobRequest {
     @NotBlank(message = "Location is required")
     private String location;
 
+    // Optional: Geographic coordinates (can be auto-filled from location)
+    private Double latitude;
+
+    private Double longitude;
+
     @NotBlank(message = "Work time is required")
     @Size(max = 50, message = "Work time must be less than or equal to 50 characters")
     private String workTime;

@@ -1,5 +1,8 @@
 package com.cnpm.bottomcv.controller;
 
+import com.cnpm.bottomcv.dto.response.ActivityLogResponse;
+import com.cnpm.bottomcv.dto.response.AdminStatsResponse;
+import com.cnpm.bottomcv.dto.response.ChartDataResponse;
 import com.cnpm.bottomcv.service.AdminDashboardService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Admin Dashboard API", description = "Skeleton endpoints for admin dashboard and system config")
+import java.util.List;
+
+@Tag(name = "Admin Dashboard API", description = "API for admin dashboard statistics and audit logs")
 @RestController
 @RequestMapping(value = "/api/v1/back/admin", produces = { MediaType.APPLICATION_JSON_VALUE })
 @RequiredArgsConstructor
@@ -19,16 +24,32 @@ public class AdminDashboardController {
 
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> getStats() {
-        adminDashboardService.getStats();
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<AdminStatsResponse> getStats() {
+        AdminStatsResponse stats = adminDashboardService.getStats();
+        return ResponseEntity.ok(stats);
     }
 
-    @GetMapping("/audit-logs")
+    @GetMapping("/activities")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> getAuditLogs() {
-        adminDashboardService.getAuditLogs();
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<List<ActivityLogResponse>> getActivities() {
+        List<ActivityLogResponse> activities = adminDashboardService.getAuditLogs();
+        return ResponseEntity.ok(activities);
+    }
+
+    @GetMapping("/charts/user-growth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ChartDataResponse> getUserGrowthChart(
+            @RequestParam(defaultValue = "30") int days) {
+        ChartDataResponse chart = adminDashboardService.getUserGrowthChart(days);
+        return ResponseEntity.ok(chart);
+    }
+
+    @GetMapping("/charts/job-trend")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ChartDataResponse> getJobTrendChart(
+            @RequestParam(defaultValue = "30") int days) {
+        ChartDataResponse chart = adminDashboardService.getJobTrendChart(days);
+        return ResponseEntity.ok(chart);
     }
 
     @GetMapping("/system/config")

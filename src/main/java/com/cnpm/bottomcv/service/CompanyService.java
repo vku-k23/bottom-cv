@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.service;
 
+import com.cnpm.bottomcv.dto.request.CompanyFilterRequest;
 import com.cnpm.bottomcv.dto.request.CompanyRequest;
 import com.cnpm.bottomcv.dto.response.CompanyResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
@@ -9,5 +10,6 @@ public interface CompanyService {
     CompanyResponse updateCompany(Long id, CompanyRequest request);
     void deleteCompany(Long id);
     ListResponse<CompanyResponse> getAllCompanies(int pageNo, int pageSize, String sortBy, String sortType);
+    ListResponse<CompanyResponse> getAllCompaniesWithFilter(CompanyFilterRequest filterRequest);
     CompanyResponse getCompanyById(Long id);
 }

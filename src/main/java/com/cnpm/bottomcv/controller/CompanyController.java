@@ -51,11 +51,23 @@ public class CompanyController {
     @GetMapping("/back/companies")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
     public ResponseEntity<ListResponse<CompanyResponse>> getAllCompaniesForBack(
-            @RequestParam(defaultValue = "0") int pageNo,
-            @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortType) {
-        return ResponseEntity.ok(companyService.getAllCompanies(pageNo, pageSize, sortBy, sortType));
+            @ModelAttribute com.cnpm.bottomcv.dto.request.CompanyFilterRequest filterRequest) {
+        // If filter params are provided, use filter method; otherwise use basic method
+        if (hasFilterParams(filterRequest)) {
+            return ResponseEntity.ok(companyService.getAllCompaniesWithFilter(filterRequest));
+        } else {
+            int pageNo = filterRequest.getPageNo() != null ? filterRequest.getPageNo() : 0;
+            int pageSize = filterRequest.getPageSize() != null ? filterRequest.getPageSize() : 10;
+            String sortBy = filterRequest.getSortBy() != null ? filterRequest.getSortBy() : "id";
+            String sortType = filterRequest.getSortType() != null ? filterRequest.getSortType() : "asc";
+            return ResponseEntity.ok(companyService.getAllCompanies(pageNo, pageSize, sortBy, sortType));
+        }
+    }
+
+    private boolean hasFilterParams(com.cnpm.bottomcv.dto.request.CompanyFilterRequest filterRequest) {
+        return (filterRequest.getSearch() != null && !filterRequest.getSearch().isEmpty())
+                || (filterRequest.getIndustry() != null && !filterRequest.getIndustry().isEmpty())
+                || filterRequest.getVerified() != null;
     }
 
     // Front APIs (for client web - public)

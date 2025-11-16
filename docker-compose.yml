@@ -57,7 +57,9 @@ services:
       - bottom-cv-network
 
   bottom-cv:
-    image: vietquoc2408/bottom-cv:0.0.2
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: bottom-cv
     restart: always
     ports:

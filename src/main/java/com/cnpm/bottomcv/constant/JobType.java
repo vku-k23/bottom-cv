@@ -7,6 +7,7 @@ public enum JobType {
     PART_TIME("PART_TIME"),
     INTERNSHIP("INTERNSHIP"),
     CONTRACT("CONTRACT"),
+    REMOTE("REMOTE"),
     ;
 
     private final String displayName;

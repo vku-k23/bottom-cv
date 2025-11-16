@@ -12,5 +12,6 @@
     <include file="db/changelog/2025/08/09-01-changelog.yaml"/>
     <include file="db/changelog/2025/08/09-02-changelog.yaml"/>
     <include file="db/changelog/2025/08/09-03-changelog.yaml"/>
+    <include file="db/changelog/db.changelog-admin-dashboard.xml"/>
 
 </databaseChangeLog>

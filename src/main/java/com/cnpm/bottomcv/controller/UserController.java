@@ -1,7 +1,7 @@
 package com.cnpm.bottomcv.controller;
 
+import com.cnpm.bottomcv.dto.request.UserFilterRequest;
 import com.cnpm.bottomcv.dto.request.UserRequest;
-import com.cnpm.bottomcv.dto.response.ApiResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.UserResponse;
 import com.cnpm.bottomcv.service.UserService;
@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Users API", description = "The API of users just for admin role")
@@ -19,51 +20,38 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
-    @GetMapping("/")
-    public ResponseEntity<ApiResponse<ListResponse<UserResponse>>> allUsers(
-            @RequestParam(required = false, defaultValue = "0") int pageNo,
-            @RequestParam(required = false, defaultValue = "10") int pageSize,
-            @RequestParam(required = false, defaultValue = "id") String sortBy,
-            @RequestParam(required = false, defaultValue = "asc") String sortType) {
-        ListResponse<UserResponse> users = userService.allUsers(pageNo, pageSize, sortBy, sortType);
-
-        ApiResponse<ListResponse<UserResponse>> response = ApiResponse.success("List of users retrieved successfully",
-                users);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ListResponse<UserResponse>> allUsers(@ModelAttribute UserFilterRequest filterRequest) {
+        ListResponse<UserResponse> users = userService.getAllUsersWithFilter(filterRequest);
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         UserResponse user = userService.getUserById(id);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(user);
+        return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/")
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest userRequest) {
         UserResponse newUser = userService.createUser(userRequest);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(newUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody UserRequest userRequest) {
         UserResponse updatedUser = userService.updateUser(id, userRequest);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(updatedUser);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .build();
+        return ResponseEntity.noContent().build();
     }
 }
