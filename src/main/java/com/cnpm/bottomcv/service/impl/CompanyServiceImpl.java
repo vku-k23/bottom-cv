@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.dto.request.CompanyFilterRequest;
 import com.cnpm.bottomcv.dto.request.CompanyRequest;
 import com.cnpm.bottomcv.dto.response.CategoryResponse;
 import com.cnpm.bottomcv.dto.response.CompanyResponse;
@@ -12,14 +13,17 @@ import com.cnpm.bottomcv.model.Company;
 import com.cnpm.bottomcv.model.Job;
 import com.cnpm.bottomcv.repository.CompanyRepository;
 import com.cnpm.bottomcv.service.CompanyService;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,6 +61,58 @@ public class CompanyServiceImpl implements CompanyService {
         Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
         Page<Company> pageCompany = companyRepository.findAll(pageable);
+        List<Company> companyContent = pageCompany.getContent();
+
+        return ListResponse.<CompanyResponse>builder()
+                .data(mapToCompanyListResponse(companyContent))
+                .pageNo(pageCompany.getNumber())
+                .pageSize(pageCompany.getSize())
+                .totalElements((int) pageCompany.getTotalElements())
+                .totalPages(pageCompany.getTotalPages())
+                .isLast(pageCompany.isLast())
+                .build();
+    }
+
+    @Override
+    public ListResponse<CompanyResponse> getAllCompaniesWithFilter(CompanyFilterRequest filterRequest) {
+        Specification<Company> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Search by name, email, industry
+            if (filterRequest.getSearch() != null && !filterRequest.getSearch().isEmpty()) {
+                String searchPattern = "%" + filterRequest.getSearch().toLowerCase() + "%";
+                Predicate searchPredicate = cb.or(
+                        cb.like(cb.lower(root.get("name")), searchPattern),
+                        cb.like(cb.lower(root.get("email")), searchPattern),
+                        cb.like(cb.lower(root.get("industry")), searchPattern));
+                predicates.add(searchPredicate);
+            }
+
+            // Filter by industry
+            if (filterRequest.getIndustry() != null && !filterRequest.getIndustry().isEmpty()) {
+                predicates.add(cb.equal(cb.lower(root.get("industry")), filterRequest.getIndustry().toLowerCase()));
+            }
+
+            // Filter by verified status
+            if (filterRequest.getVerified() != null) {
+                predicates.add(cb.equal(root.get("verified"), filterRequest.getVerified()));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        // Sorting
+        Sort sort = Sort.unsorted();
+        if (filterRequest.getSortBy() != null && filterRequest.getSortType() != null) {
+            sort = Sort.by(Sort.Direction.fromString(filterRequest.getSortType()), filterRequest.getSortBy());
+        }
+
+        // Pagination
+        int pageNo = filterRequest.getPageNo() != null ? filterRequest.getPageNo() : 0;
+        int pageSize = filterRequest.getPageSize() != null ? filterRequest.getPageSize() : 10;
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<Company> pageCompany = companyRepository.findAll(spec, pageable);
         List<Company> companyContent = pageCompany.getContent();
 
         return ListResponse.<CompanyResponse>builder()
@@ -132,10 +188,17 @@ public class CompanyServiceImpl implements CompanyService {
         response.setIndustry(company.getIndustry());
         response.setCompanySize(company.getCompanySize());
         response.setFoundedYear(company.getFoundedYear());
+        response.setVerified(company.getVerified());
+        response.setVerificationNotes(company.getVerificationNotes());
+        response.setVerificationDate(company.getVerificationDate());
+        response.setVerifiedBy(company.getVerifiedBy());
+        response.setCreatedAt(company.getCreatedAt());
 
-        response.setJobs(company.getJobs().stream()
+        // Set jobs list and count
+        List<JobResponse> jobsList = company.getJobs().stream()
                 .map(this::mapToJobResponse)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
+        response.setJobs(jobsList);
 
         return response;
     }

@@ -1,11 +1,21 @@
 package com.cnpm.bottomcv.service;
 
-public interface AdminDashboardService {
-    void getStats();
+import com.cnpm.bottomcv.dto.response.ActivityLogResponse;
+import com.cnpm.bottomcv.dto.response.AdminStatsResponse;
+import com.cnpm.bottomcv.dto.response.ChartDataResponse;
 
-    void getAuditLogs();
+import java.util.List;
+
+public interface AdminDashboardService {
+    AdminStatsResponse getStats();
+
+    List<ActivityLogResponse> getAuditLogs();
 
     void getSystemConfig();
 
     void updateSystemConfig();
+    
+    ChartDataResponse getUserGrowthChart(int days);
+    
+    ChartDataResponse getJobTrendChart(int days);
 }

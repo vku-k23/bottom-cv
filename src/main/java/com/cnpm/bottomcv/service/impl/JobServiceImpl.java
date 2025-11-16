@@ -55,7 +55,6 @@ public class JobServiceImpl implements JobService {
   private boolean modelAvailable = false;
 
   @EventListener(ApplicationReadyEvent.class)
-  @Transactional(readOnly = true)
   public void init() {
     // Try to load the trained model
     try {

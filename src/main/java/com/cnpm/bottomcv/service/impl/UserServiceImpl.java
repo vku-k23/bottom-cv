@@ -1,6 +1,7 @@
 package com.cnpm.bottomcv.service.impl;
 
 import com.cnpm.bottomcv.constant.TimeFormat;
+import com.cnpm.bottomcv.dto.request.UserFilterRequest;
 import com.cnpm.bottomcv.dto.request.UserRequest;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.ProfileResponse;
@@ -37,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final UserServiceWithFilterImpl userServiceWithFilter;
 
     @Override
     public ListResponse<UserResponse> allUsers(int pageNo, int pageSize, String sortBy, String sortType) {
@@ -141,6 +143,11 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id.toString()));
         userRepository.delete(user);
+    }
+
+    @Override
+    public ListResponse<UserResponse> getAllUsersWithFilter(UserFilterRequest filterRequest) {
+        return userServiceWithFilter.getAllUsersWithFilter(filterRequest);
     }
 
     private List<UserResponse> mapToUserResponseList(List<User> users) {
