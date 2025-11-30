@@ -48,17 +48,18 @@ public class UserServiceWithFilterImpl {
                 predicates.add(searchPredicate);
             }
 
-            // Filter by role
+            // Filter by role - join roles table and check role name
             if (filterRequest.getRole() != null) {
-                predicates.add(cb.isMember(
-                        filterRequest.getRole(),
-                        root.join("roles").get("name")));
+                predicates.add(cb.equal(root.join("roles").get("name"), filterRequest.getRole()));
             }
 
             // Filter by status
             if (filterRequest.getStatus() != null) {
                 predicates.add(cb.equal(root.get("status"), filterRequest.getStatus()));
             }
+
+            // Ensure distinct results when joining
+            query.distinct(true);
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
@@ -75,7 +76,8 @@ public class UserServiceWithFilterImpl {
         int size = filterRequest.getSize() != null ? filterRequest.getSize() : 10;
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<User> userPage = userRepository.findAll(pageable);
+        // Use spec with findAll to apply filters
+        Page<User> userPage = userRepository.findAll(spec, pageable);
         List<User> users = userPage.getContent();
 
         return ListResponse.<UserResponse>builder()

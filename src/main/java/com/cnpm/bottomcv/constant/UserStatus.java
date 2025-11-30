@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum UserStatus {
     ACTIVE("ACTIVE"),
     INACTIVE("INACTIVE"),
-    PENDING("PENDING");
+    PENDING("PENDING"),
+    BANNED("BANNED");
 
     @JsonValue
     public String getDisplayName() {
