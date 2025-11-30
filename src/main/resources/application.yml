@@ -37,7 +37,7 @@ spring:
   security:
     jwt:
       secret-key: L6OovFfxRA/YmnfxL44ou2umFmoFe1fDMK/TlEyllNoGOViiY2MelWE53EObFtfA+mg37xjJJw0m1ePB/o1maA==
-      expirationMs: 900000 # 15 minutes
+      expirationMs: 259200000 # 3 days (3 * 24 * 60 * 60 * 1000)
       refreshExpirationMs: 604800000 # 7 days
 
   mail:

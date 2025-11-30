@@ -48,6 +48,7 @@ public class JobServiceImpl implements JobService {
   private final CategoryRepository categoryRepository;
   private final CVRepository cvRepository;
   private final UserRepository userRepository;
+  private final SavedJobRepository savedJobRepository;
   private final TFIDFVectorizer tfidfVectorizer;
   private MultiLayerNetwork recommendationModel;
   private final RabbitTemplate rabbitTemplate;
@@ -229,9 +230,12 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
+  @Transactional
   public void deleteJob(Long id) {
     Job job = jobRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Job id", "id", id.toString()));
+    // Delete related saved_jobs first to avoid foreign key constraint
+    savedJobRepository.deleteByJobId(id);
     jobRepository.delete(job);
   }
 
