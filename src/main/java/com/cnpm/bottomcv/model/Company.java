@@ -55,5 +55,18 @@ public class Company extends BaseEntity {
     private Set<Job> jobs = new HashSet<>();
 
     @OneToMany(mappedBy = "company")
-    private Set<Review> reviews = new HashSet<>();;
+    private Set<Review> reviews = new HashSet<>();
+    
+    @Column(name = "verified", nullable = false)
+    @Builder.Default
+    private Boolean verified = false;
+    
+    @Column(name = "verification_notes", length = 1000)
+    private String verificationNotes;
+    
+    @Column(name = "verification_date")
+    private java.time.LocalDateTime verificationDate;
+    
+    @Column(name = "verified_by", length = 255)
+    private String verifiedBy;
 }

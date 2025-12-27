@@ -119,13 +119,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 throw new ResourceNotFoundException("Email", "email", request);
             }
 
+            if (!userRepository.isUserActiveWithEmail(request)) {
+                throw new BadRequestException("Email is not active. Please verify your email first.");
+            }
+
             VerificationToken alreadyVT = verificationTokenService.getVerificationTokenByEmail(request);
 
-            if (alreadyVT != null && alreadyVT.getType() == TypeVerificationToken.FORGOT_PASSWORD) {
-                if (alreadyVT.getStatus() == StatusVerificationToken.WAITING) {
-                    throw new BadRequestException(
-                            "Forgot password request is already in progress.");
-                }
+            if (alreadyVT != null &&
+                    alreadyVT.getType() == TypeVerificationToken.FORGOT_PASSWORD &&
+                    (alreadyVT.getStatus() == StatusVerificationToken.WAITING ||
+                            alreadyVT.getStatus() == StatusVerificationToken.IN_PROGRESS)) {
+                return;
             }
 
             String token = buildResetPasswordToken(request);
@@ -144,108 +148,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new IllegalArgumentException(
                     "Invalid request format. Please provide a valid email or phone number.");
         }
-    }
-
-    @Override
-    public void resetPassword(String token, String newPassword) {
-        Pattern passwordPolicy = Pattern
-                .compile(PatternField.PASSWORD_PATTERN);
-        if (newPassword == null || !passwordPolicy.matcher(newPassword).matches()) {
-            throw new IllegalArgumentException("Password does not meet security requirements.");
-        }
-
-        final String username;
-        try {
-            VerificationToken verificationToken = verificationTokenService.getVerificationToken(token);
-            if (verificationToken == null
-                    || verificationToken.getType() != TypeVerificationToken.FORGOT_PASSWORD) {
-                throw new IllegalArgumentException("Invalid reset token.");
-            }
-            if (verificationToken.getStatus() != StatusVerificationToken.IN_PROGRESS) {
-                throw new IllegalArgumentException("Reset token is not in progress status.");
-            }
-            username = jwtService.extractUsernameIgnoreExpiration(token);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid reset token.");
-        }
-
-        if (jwtService.isTokenExpired(token)) {
-            throw new IllegalArgumentException("Reset token has expired.");
-        }
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
-        user.setPassword(passwordEncoder.encode(newPassword));
-
-        verificationTokenService.deleteVerificationToken(token);
-
-        userRepository.save(user);
-
-        refreshTokenService.deleteByUserId(user.getId());
-    }
-
-    @Override
-    public void sendVerificationEmail(String email) {
-        if (email == null || !Pattern.compile(PatternField.EMAIL_PATTERN).matcher(email).matches()) {
-            throw new IllegalArgumentException("Invalid email format.");
-        } else if (!userRepository.isUserActiveWithEmail(email)) {
-            throw new ResourceAlreadyExistException("Email does not exists.");
-        }
-
-        VerificationToken verificationToken = verificationTokenService.getVerificationTokenByEmail(email);
-
-        if (verificationToken != null && verificationToken.getType() == TypeVerificationToken.EMAIL) {
-            if (verificationToken.getStatus() == StatusVerificationToken.WAITING) {
-                throw new BadRequestException("Email verification is already in progress.");
-            } else if (verificationToken.getStatus() == StatusVerificationToken.DONE) {
-                throw new BadRequestException("Email is already verified.");
-            }
-        }
-
-        String token = buildVerificationEmailToken(email);
-        verificationTokenService.saveVerificationToken(
-                VerificationToken.builder()
-                        .token(token)
-                        .type(TypeVerificationToken.EMAIL)
-                        .status(StatusVerificationToken.WAITING)
-                        .email(email)
-                        .build(),
-                15);
-        emailService.sendVerificationEmail(email, token);
-    }
-
-    @Override
-    public void sendVerificationPhoneNumber(String phoneNumber) {
-        // After verify otp code,
-    }
-
-    @Override
-    public void confirmVerificationEmail(String token) {
-        final String username;
-        try {
-            VerificationToken verificationToken = verificationTokenService.getVerificationToken(token);
-            if (verificationToken == null || verificationToken.getType() != TypeVerificationToken.EMAIL) {
-                throw new IllegalArgumentException("Invalid verification token.");
-            }
-            if (verificationToken.getStatus() != StatusVerificationToken.WAITING) {
-                throw new IllegalArgumentException("Verification token is not in waiting status.");
-            }
-            username = jwtService.extractUsernameIgnoreExpiration(token);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid verification token.");
-        }
-
-        if (jwtService.isTokenExpired(token)) {
-            throw new IllegalArgumentException("Verification token has expired.");
-        }
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
-        user.setStatus(UserStatus.ACTIVE);
-
-        verificationTokenService.updateStatus(token, StatusVerificationToken.DONE);
-
-        userRepository.save(user);
     }
 
     @Override
@@ -268,6 +170,116 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new IllegalArgumentException("Forgot password token has expired.");
         }
         verificationTokenService.updateStatus(token, StatusVerificationToken.IN_PROGRESS);
+    }
+
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        Pattern passwordPolicy = Pattern
+                .compile(PatternField.PASSWORD_PATTERN);
+        if (newPassword == null || !passwordPolicy.matcher(newPassword).matches()) {
+            throw new IllegalArgumentException("Password does not meet security requirements.");
+        }
+
+        final String username;
+        VerificationToken verificationToken;
+        try {
+            verificationToken = verificationTokenService.getVerificationToken(token);
+            if (verificationToken == null
+                    || verificationToken.getType() != TypeVerificationToken.FORGOT_PASSWORD) {
+                throw new IllegalArgumentException("Invalid reset token.");
+            }
+            if (verificationToken.getStatus() != StatusVerificationToken.IN_PROGRESS) {
+                throw new IllegalArgumentException("Reset token is not in progress status.");
+            }
+            username = jwtService.extractUsernameIgnoreExpiration(token);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid reset token.");
+        }
+
+        if (jwtService.isTokenExpired(token)) {
+            throw new IllegalArgumentException("Reset token has expired.");
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+
+        verificationTokenService.deleteVerificationToken(token);
+
+        userRepository.save(user);
+
+        refreshTokenService.deleteByUserId(user.getId());
+    }
+
+    @Override
+    public void sendVerificationEmail(String email) {
+        if (email == null || !Pattern.compile(PatternField.EMAIL_PATTERN).matcher(email).matches()) {
+            throw new IllegalArgumentException("Invalid email format.");
+        }
+
+        if (!userRepository.existsByEmail(email)) {
+            throw new ResourceNotFoundException("Email", "email", email);
+        }
+
+        if (userRepository.isUserActiveWithEmail(email)) {
+            throw new BadRequestException("Email is already verified.");
+        }
+
+        VerificationToken verificationToken = verificationTokenService.getVerificationTokenByEmail(email);
+
+        if (verificationToken != null && verificationToken.getType() == TypeVerificationToken.EMAIL) {
+            if (verificationToken.getStatus() == StatusVerificationToken.WAITING) {
+                return;
+            }
+        }
+
+        String token = buildVerificationEmailToken(email);
+        verificationTokenService.saveVerificationToken(
+                VerificationToken.builder()
+                        .token(token)
+                        .type(TypeVerificationToken.EMAIL)
+                        .status(StatusVerificationToken.WAITING)
+                        .email(email)
+                        .build(),
+                15);
+
+        emailService.sendVerificationEmail(email, token);
+    }
+
+    @Override
+    public void sendVerificationPhoneNumber(String phoneNumber) {
+        // After verify otp code,
+    }
+
+    @Override
+    public void confirmVerificationEmail(String token) {
+        final String username;
+        try {
+            VerificationToken verificationToken = verificationTokenService.getVerificationToken(token);
+            if (verificationToken == null || verificationToken.getType() != TypeVerificationToken.EMAIL) {
+                throw new IllegalArgumentException("Invalid verification token.");
+            }
+            if (verificationToken.getStatus() != StatusVerificationToken.WAITING) {
+                throw new IllegalArgumentException("Verification token is not in waiting status.");
+            }
+            username = jwtService.extractUsernameIgnoreExpiration(token);
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the full stack trace
+            throw new IllegalArgumentException("Invalid verification token: " + e.getMessage());
+        }
+
+        if (jwtService.isTokenExpired(token)) {
+            throw new IllegalArgumentException("Verification token has expired.");
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        user.setStatus(UserStatus.ACTIVE);
+
+        verificationTokenService.updateStatus(token, StatusVerificationToken.DONE);
+
+        userRepository.save(user);
     }
 
     @Override

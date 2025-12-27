@@ -29,6 +29,8 @@ public class Apply extends BaseEntity {
     @JoinColumn(name = "cv_id", nullable = false)
     private CV cv;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private StatusJob status;
 
     private String message;

@@ -3,8 +3,11 @@ package com.cnpm.bottomcv.exception;
 import com.cnpm.bottomcv.dto.response.ErrorResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.*;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,14 +15,15 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import lombok.extern.slf4j.Slf4j;
 
-import java.nio.file.AccessDeniedException;
 import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
@@ -48,8 +52,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(403), exception.getMessage());
             errorDetail.setProperty("description", "The account is locked");
         } else if (exception instanceof AccessDeniedException) {
+            // Log detailed information for debugging
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            log.warn("Access denied for user: {}", auth != null ? auth.getName() : "anonymous");
+            log.warn("User authorities: {}", auth != null ? auth.getAuthorities() : "none");
+            log.warn("Request path: {}", exception.getMessage());
+            
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(403), exception.getMessage());
             errorDetail.setProperty("description", "You are not authorized to access this resource");
+            errorDetail.setProperty("user", auth != null ? auth.getName() : "anonymous");
+            errorDetail.setProperty("authorities", auth != null ? auth.getAuthorities().toString() : "none");
         } else if (exception instanceof SignatureException) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(403), exception.getMessage());
             errorDetail.setProperty("description", "The JWT signature is invalid");

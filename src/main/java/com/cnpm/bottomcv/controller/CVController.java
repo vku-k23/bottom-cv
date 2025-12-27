@@ -4,6 +4,7 @@ import com.cnpm.bottomcv.dto.request.CVRequest;
 import com.cnpm.bottomcv.dto.response.CVResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.service.CVService;
+import com.cnpm.bottomcv.model.User;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -61,8 +62,8 @@ public class CVController {
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortType) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return ResponseEntity.ok(cvService.getAllMyCVs(username, pageNo, pageSize, sortBy, sortType));
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(cvService.getAllMyCVs(user.getId(), pageNo, pageSize, sortBy, sortType));
     }
 
     @PutMapping(value = "/front/cvs/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

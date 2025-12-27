@@ -41,7 +41,32 @@ public class JobController {
 
     @GetMapping("/back/jobs")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
-    public ResponseEntity<ListResponse<JobResponse>> getAllJobsForBack(@ModelAttribute JobSearchRequest request) {
+    public ResponseEntity<ListResponse<JobResponse>> getAllJobsForBack(
+            @ModelAttribute com.cnpm.bottomcv.dto.request.JobFilterRequest filterRequest) {
+        // Convert JobFilterRequest to JobSearchRequest
+        JobSearchRequest request = new JobSearchRequest();
+        request.setKeyword(filterRequest.getSearch());
+        request.setLocation(filterRequest.getLocation());
+        if (filterRequest.getJobType() != null) {
+            try {
+                request.setJobType(com.cnpm.bottomcv.constant.JobType.valueOf(filterRequest.getJobType()));
+            } catch (IllegalArgumentException e) {
+                // Invalid job type, ignore
+            }
+        }
+        if (filterRequest.getStatus() != null) {
+            try {
+                request.setStatus(com.cnpm.bottomcv.constant.StatusJob.valueOf(filterRequest.getStatus()));
+            } catch (IllegalArgumentException e) {
+                // Invalid status, ignore
+            }
+        }
+        request.setCategoryId(filterRequest.getCategoryId());
+        request.setSortBy(filterRequest.getSortBy());
+        request.setSortDirection(filterRequest.getSortType());
+        request.setPage(filterRequest.getPageNo() != null ? filterRequest.getPageNo() : 0);
+        request.setSize(filterRequest.getPageSize() != null ? filterRequest.getPageSize() : 10);
+        
         ListResponse<JobResponse> response = jobService.getAllJobs(request);
         return ResponseEntity.ok(response);
     }

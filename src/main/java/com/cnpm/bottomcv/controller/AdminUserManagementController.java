@@ -1,15 +1,18 @@
 package com.cnpm.bottomcv.controller;
 
+import com.cnpm.bottomcv.dto.request.UpdateUserRolesRequest;
+import com.cnpm.bottomcv.dto.request.UpdateUserStatusRequest;
+import com.cnpm.bottomcv.dto.response.UserResponse;
 import com.cnpm.bottomcv.service.AdminUserManagementService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Admin Users Management API", description = "Skeleton endpoints for admin user management")
+@Tag(name = "Admin Users Management API", description = "API for admin user management operations")
 @RestController
 @RequestMapping(value = "/api/v1/back/users", produces = { MediaType.APPLICATION_JSON_VALUE })
 @RequiredArgsConstructor
@@ -19,36 +22,40 @@ public class AdminUserManagementController {
 
     @PutMapping("/{id}/roles")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> updateRoles(@PathVariable Long id) {
-        adminUserManagementService.updateRoles(id);
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<UserResponse> updateRoles(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateUserRolesRequest request) {
+        UserResponse response = adminUserManagementService.updateRoles(id, request);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> activate(@PathVariable Long id) {
-        adminUserManagementService.activate(id);
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<UserResponse> activate(@PathVariable Long id) {
+        UserResponse response = adminUserManagementService.activate(id);
+        return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}/deactivate")
+    @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
-        adminUserManagementService.deactivate(id);
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<UserResponse> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateUserStatusRequest request) {
+        UserResponse response = adminUserManagementService.deactivate(id, request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{id}/impersonate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> impersonate(@PathVariable Long id) {
         adminUserManagementService.impersonate(id);
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/reset-password")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> adminResetPassword(@PathVariable Long id) {
         adminUserManagementService.adminResetPassword(id);
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        return ResponseEntity.ok().build();
     }
 }

@@ -33,3 +33,10 @@ build/
 .vscode/
 
 uploads/
+
+lucene-index/
+
+*.log
+
+.env
+.env.*

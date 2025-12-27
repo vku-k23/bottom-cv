@@ -17,7 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Job extends BaseEntity {   
+public class Job extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,6 +42,13 @@ public class Job extends BaseEntity {
     @Column(nullable = false)
     private String location;
 
+    // Geographic coordinates for map display
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     private String workTime;
 
     private Double salary;
@@ -49,14 +56,11 @@ public class Job extends BaseEntity {
     private LocalDateTime expiryDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private StatusJob status;
 
     @ManyToMany
-    @JoinTable(
-            name = "job_category",
-            joinColumns = @JoinColumn(name = "job_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id")
-    )
+    @JoinTable(name = "job_category", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories = new HashSet<>();
 
     @ManyToOne

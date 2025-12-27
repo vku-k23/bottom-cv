@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="create-system-config-table" author="admin">
+        <createTable tableName="system_config">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="site_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="site_description" type="VARCHAR(500)"/>
+            <column name="contact_email" type="VARCHAR(100)"/>
+            <column name="contact_phone" type="VARCHAR(20)"/>
+            <column name="logo_url" type="VARCHAR(255)"/>
+            <column name="favicon_url" type="VARCHAR(255)"/>
+            
+            <!-- Email settings -->
+            <column name="smtp_host" type="VARCHAR(100)"/>
+            <column name="smtp_port" type="INT"/>
+            <column name="smtp_username" type="VARCHAR(100)"/>
+            <column name="smtp_password" type="VARCHAR(255)"/>
+            
+            <!-- Security settings -->
+            <column name="password_min_length" type="INT" defaultValueNumeric="8">
+                <constraints nullable="false"/>
+            </column>
+            <column name="session_timeout_minutes" type="INT" defaultValueNumeric="30">
+                <constraints nullable="false"/>
+            </column>
+            <column name="max_login_attempts" type="INT" defaultValueNumeric="5">
+                <constraints nullable="false"/>
+            </column>
+            
+            <!-- Maintenance mode -->
+            <column name="maintenance_mode" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="maintenance_message" type="VARCHAR(500)"/>
+            
+            <!-- Audit fields -->
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="updated_by" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-feature-flags-table" author="admin">
+        <createTable tableName="feature_flags">
+            <column name="config_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feature_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addPrimaryKey tableName="feature_flags" 
+                       columnNames="config_id, feature_name" 
+                       constraintName="pk_feature_flags"/>
+        
+        <addForeignKeyConstraint
+            baseTableName="feature_flags"
+            baseColumnNames="config_id"
+            referencedTableName="system_config"
+            referencedColumnNames="id"
+            constraintName="fk_feature_flags_config"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="add-verified-to-companies" author="admin">
+        <addColumn tableName="companies">
+            <column name="verified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="verification_notes" type="VARCHAR(1000)"/>
+            <column name="verification_date" type="TIMESTAMP"/>
+            <column name="verified_by" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-location-coordinates-to-jobs" author="admin">
+        <addColumn tableName="jobs">
+            <column name="latitude" type="DOUBLE"/>
+            <column name="longitude" type="DOUBLE"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="insert-default-system-config" author="admin">
+        <insert tableName="system_config">
+            <column name="site_name" value="BottomCV"/>
+            <column name="site_description" value="Job Portal Platform"/>
+            <column name="contact_email" value="support@bottomcv.com"/>
+            <column name="password_min_length" valueNumeric="8"/>
+            <column name="session_timeout_minutes" valueNumeric="30"/>
+            <column name="max_login_attempts" valueNumeric="5"/>
+            <column name="maintenance_mode" valueBoolean="false"/>
+            <column name="created_by" value="SYSTEM"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
+

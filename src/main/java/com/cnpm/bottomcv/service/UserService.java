@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.service;
 
+import com.cnpm.bottomcv.dto.request.UserFilterRequest;
 import com.cnpm.bottomcv.dto.request.UserRequest;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.UserResponse;
@@ -14,4 +15,6 @@ public interface UserService {
     UserResponse updateUser(Long id, UserRequest userRequest);
 
     void deleteUser(Long id);
+
+    ListResponse<UserResponse> getAllUsersWithFilter(UserFilterRequest filterRequest);
 }
