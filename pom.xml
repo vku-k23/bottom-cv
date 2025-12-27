@@ -72,8 +72,8 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -139,10 +139,7 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-        </dependency>
+
         <!--        MinIO-->
         <dependency>
             <groupId>io.minio</groupId>
@@ -185,20 +182,7 @@
                     </excludes>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-maven-plugin</artifactId>
-                <version>4.29.2</version>
-                <configuration>
-                    <url>jdbc:mysql://localhost:3307/bottom_cv</url>
-                    <username>root</username>
-                    <password>root</password>
-                    <driver>com.mysql.cj.jdbc.Driver</driver>
-                    <logLevel>info</logLevel>
-                    <contexts>development</contexts>
-                    <changeLogFile>src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
-                </configuration>
-            </plugin>
+
         </plugins>
     </build>
 
