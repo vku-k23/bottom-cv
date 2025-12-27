@@ -265,7 +265,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
             username = jwtService.extractUsernameIgnoreExpiration(token);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid verification token.");
+            e.printStackTrace(); // Log the full stack trace
+            throw new IllegalArgumentException("Invalid verification token: " + e.getMessage());
         }
 
         if (jwtService.isTokenExpired(token)) {
@@ -280,8 +281,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         userRepository.save(user);
     }
-
-
 
     @Override
     public void logout(String refreshToken) {
