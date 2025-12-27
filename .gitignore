@@ -35,3 +35,5 @@ build/
 uploads/
 
 lucene-index/
+
+*.log

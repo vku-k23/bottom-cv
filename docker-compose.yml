@@ -1,19 +1,20 @@
 version: "3.9"
 
 services:
-  mysql:
-    image: mysql:9.2
-    container_name: bottom-cv-mysql
+  postgres:
+    image: postgres:16-alpine
+    container_name: bottom-cv-postgres
     restart: always
     ports:
-      - "3307:3306"
+      - "5432:5432"
     environment:
-      MYSQL_DATABASE: bottom_cv
-      MYSQL_ROOT_PASSWORD: root
+      POSTGRES_DB: bottom_cv
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 10s
       retries: 10
@@ -65,16 +66,16 @@ services:
     ports:
       - "8088:8088"
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       minio:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bottom_cv
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bottom_cv
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
       SERVER_PORT: 8088
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: minioadmin
@@ -84,7 +85,7 @@ services:
       - bottom-cv-network
 
 volumes:
-  mysql_data:
+  postgres_data:
   minio_data:
 
 networks:
