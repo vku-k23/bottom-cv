@@ -1,4 +1,4 @@
-FROM maven:3.8.3-openjdk-17 as build
+FROM maven:3.8.3-openjdk-17-slim as build
 
 WORKDIR /app
 COPY pom.xml .
@@ -7,12 +7,10 @@ RUN mvn dependency:go-offline -B
 COPY src /app/src
 RUN mvn clean package -DskipTests=true
 
-FROM eclipse-temurin:17-jre-alpine-3.21
+FROM gcr.io/distroless/java17-debian12
 
-RUN ln -sf /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
-
-COPY --from=build /app/target/*.jar /run/app.jar
+COPY --from=build /app/target/*.jar /app.jar
 
 EXPOSE 8888
 
-ENTRYPOINT ["java", "-Xmx2048m", "-Xms256m", "-jar", "/run/app.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "/app.jar"]

@@ -37,3 +37,6 @@ uploads/
 lucene-index/
 
 *.log
+
+.env
+.env.*

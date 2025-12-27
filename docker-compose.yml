@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 10s
       retries: 10
@@ -32,6 +32,9 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
     networks:
       - bottom-cv-network
 
@@ -49,11 +52,21 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test:
-        [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 30s
       timeout: 20s
       retries: 3
+    networks:
+      - bottom-cv-network
+
+  bottom-cv-fe:
+    build:
+      context: ../bottom-cv-fe
+      dockerfile: Dockerfile
+    container_name: bottom-cv-fe
+    restart: always
+    ports:
+      - "3000:3000"
     networks:
       - bottom-cv-network
 
@@ -81,12 +94,17 @@ services:
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET_NAME: bottom-cv-storage
+      SPRING_DATA_REDIS_HOST: redis
+      GMAIL_USERNAME: ${GMAIL_USERNAME}
+      GMAIL_PASSWORD: ${GMAIL_PASSWORD}
     networks:
       - bottom-cv-network
 
 volumes:
   postgres_data:
   minio_data:
+  redis_data:
+
 
 networks:
   bottom-cv-network:
