@@ -65,5 +65,6 @@ public class Job extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "company_id", nullable = false)
+    @ToString.Exclude
     private Company company;
 }

@@ -51,14 +51,22 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public CompanyResponse getCompanyById(Long id) {
-        Company company = companyRepository.findById(id)
+        System.out.println("DEBUG: Fetching company with ID: " + id);
+        Company company = companyRepository.findByIdWithJobs(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
+        System.out.println("DEBUG: Company fetched: " + company.getName());
+        System.out.println("DEBUG: Jobs collection class: " + company.getJobs().getClass().getName());
+        System.out.println("DEBUG: Jobs size: " + company.getJobs().size());
+        if (company.getJobs().size() > 0) {
+            System.out.println("DEBUG: First job title: " + company.getJobs().iterator().next().getTitle());
+        }
         return mapToResponse(company);
     }
 
     @Override
     public ListResponse<CompanyResponse> getAllCompanies(int pageNo, int pageSize, String sortBy, String sortType) {
-        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Sort sortObj = sortBy.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
         Page<Company> pageCompany = companyRepository.findAll(pageable);
         List<Company> companyContent = pageCompany.getContent();
@@ -195,10 +203,12 @@ public class CompanyServiceImpl implements CompanyService {
         response.setCreatedAt(company.getCreatedAt());
 
         // Set jobs list and count
+        System.out.println("DEBUG: Company ID: " + company.getId() + ", Jobs count: " + company.getJobs().size());
         List<JobResponse> jobsList = company.getJobs().stream()
-                .map(this::mapToJobResponse)
+                .map(this::mapToSimpleJobResponse) // Use simplified mapper to avoid circular reference
                 .collect(Collectors.toList());
         response.setJobs(jobsList);
+        System.out.println("DEBUG: Mapped jobs count: " + jobsList.size());
 
         return response;
     }
@@ -252,5 +262,32 @@ public class CompanyServiceImpl implements CompanyService {
         categoryResponse.setSlug(category.getSlug());
         categoryResponse.setDescription(category.getDescription());
         return categoryResponse;
+    }
+
+    private JobResponse mapToSimpleJobResponse(Job job) {
+        JobResponse jobResponse = new JobResponse();
+        jobResponse.setId(job.getId());
+        jobResponse.setTitle(job.getTitle());
+        jobResponse.setJobDescription(job.getJobDescription());
+        jobResponse.setJobRequirement(job.getJobRequirement());
+        jobResponse.setJobBenefit(job.getJobBenefit());
+        jobResponse.setJobType(job.getJobType());
+        jobResponse.setLocation(job.getLocation());
+        jobResponse.setWorkTime(job.getWorkTime());
+        jobResponse.setSalary(job.getSalary());
+        jobResponse.setExpiryDate(job.getExpiryDate());
+        jobResponse.setStatus(job.getStatus());
+        jobResponse.setCreatedAt(job.getCreatedAt());
+        jobResponse.setCreatedBy(job.getCreatedBy());
+        jobResponse.setUpdatedAt(job.getUpdatedAt());
+        jobResponse.setUpdatedBy(job.getUpdatedBy());
+
+        // Don't set company to avoid circular reference when called from mapToResponse
+        // Categories can be included as they don't reference back to company
+        jobResponse.setCategories(job.getCategories().stream()
+                .map(this::mapToCategoryResponse)
+                .collect(Collectors.toSet()));
+
+        return jobResponse;
     }
 }
