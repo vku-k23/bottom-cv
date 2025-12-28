@@ -23,7 +23,7 @@ public class ProfileController {
 
         private final ProfileService profileService;
 
-        @GetMapping("/front/profile")
+        @GetMapping({"/front/profile", "/users/profile"})
         public ResponseEntity<ProfileResponse> authenticatedUser() {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 User currentUser = (User) authentication.getPrincipal();
@@ -32,7 +32,7 @@ public class ProfileController {
                                 .body(profileService.getProfileByUserId(currentUser.getId()));
         }
 
-        @PostMapping("/front/profile")
+        @PostMapping({"/front/profile", "/users/profile"})
         public ResponseEntity<ProfileResponse> updateProfile(@Valid @RequestBody ProfileRequest profileRequest) {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 User currentUser = (User) authentication.getPrincipal();

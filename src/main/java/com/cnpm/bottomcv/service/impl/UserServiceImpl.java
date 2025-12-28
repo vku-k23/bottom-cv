@@ -40,6 +40,7 @@ public class UserServiceImpl implements UserService {
     private final com.cnpm.bottomcv.repository.RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserServiceWithFilterImpl userServiceWithFilter;
+    private final com.cnpm.bottomcv.service.MinioService minioService;
 
     @Override
     public ListResponse<UserResponse> allUsers(int pageNo, int pageSize, String sortBy, String sortType) {
@@ -187,6 +188,15 @@ public class UserServiceImpl implements UserService {
     }
 
     private ProfileResponse mapToProfileResponse(Profile profile) {
+        String avatarUrl = profile.getAvatar();
+        if (avatarUrl != null && !avatarUrl.isEmpty() && !avatarUrl.startsWith("http")) {
+            try {
+                avatarUrl = minioService.getFileUrl(avatarUrl);
+            } catch (Exception e) {
+                log.error("Failed to generate presigned URL for avatar: {}", avatarUrl);
+            }
+        }
+
         return ProfileResponse.builder()
                 .id(profile.getId())
                 .firstName(profile.getFirstName())
@@ -195,7 +205,7 @@ public class UserServiceImpl implements UserService {
                 .address(profile.getAddress())
                 .phoneNumber(profile.getPhoneNumber())
                 .email(profile.getEmail())
-                .avatar(profile.getAvatar())
+                .avatar(avatarUrl)
                 .description(profile.getDescription())
                 .createdAt(profile.getCreatedAt().format(DateTimeFormatter.ofPattern(TimeFormat.DATE_TIME_FORMAT)))
                 .updatedAt(profile.getUpdatedAt().format(DateTimeFormatter.ofPattern(TimeFormat.DATE_TIME_FORMAT)))

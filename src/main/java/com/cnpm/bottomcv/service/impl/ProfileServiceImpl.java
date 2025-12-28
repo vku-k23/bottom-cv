@@ -22,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
   private final ProfileRepository profileRepository;
+  private final com.cnpm.bottomcv.service.MinioService minioService;
 
   @Override
   public ListResponse<ProfileResponse> allProfiles(int pageNo, int pageSize, String sortBy, String sortType) {
@@ -102,9 +103,18 @@ public class ProfileServiceImpl implements ProfileService {
   }
 
   private ProfileResponse mapToProfileResponse(Profile profile) {
+    String avatarUrl = profile.getAvatar();
+    if (avatarUrl != null && !avatarUrl.isEmpty() && !avatarUrl.startsWith("http")) {
+        try {
+            avatarUrl = minioService.getFileUrl(avatarUrl);
+        } catch (Exception e) {
+            log.error("Failed to generate presigned URL for avatar: {}", avatarUrl);
+        }
+    }
+
     return ProfileResponse.builder()
         .id(profile.getId())
-        .avatar(profile.getAvatar())
+        .avatar(avatarUrl)
         .firstName(profile.getFirstName())
         .lastName(profile.getLastName())
         .dayOfBirth(profile.getDayOfBirth())
