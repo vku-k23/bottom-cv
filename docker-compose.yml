@@ -21,6 +21,23 @@ services:
     networks:
       - bottom-cv-network
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: bottom-cv-pgadmin
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - bottom-cv-network
+
   redis:
     image: redis
     container_name: redis
@@ -102,9 +119,9 @@ services:
 
 volumes:
   postgres_data:
+  pgadmin_data:
   minio_data:
   redis_data:
-
 
 networks:
   bottom-cv-network:
