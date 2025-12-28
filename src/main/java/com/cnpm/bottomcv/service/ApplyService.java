@@ -14,5 +14,7 @@ public interface ApplyService {
 
     ApplyResponse updateApply(Long id, ApplyRequest request, Authentication authentication);
 
+    ApplyResponse submitApplication(Long jobId, String coverLetter, org.springframework.web.multipart.MultipartFile cvFile, Authentication authentication);
+
     void deleteApply(Long id, Authentication authentication);
 }

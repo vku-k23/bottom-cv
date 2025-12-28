@@ -17,6 +17,8 @@ public class ApplyResponse {
     private Long userId;
     private Long jobId;
     private Long cvId;
+    private String cvUrl;
+    private String coverLetter;
     private StatusJob status;
     private String message;
     private LocalDateTime createdAt;

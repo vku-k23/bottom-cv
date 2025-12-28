@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final com.cnpm.bottomcv.repository.RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserServiceWithFilterImpl userServiceWithFilter;
 
@@ -78,7 +79,16 @@ public class UserServiceImpl implements UserService {
         user.setUsername(userRequest.getUsername());
         user.setUserCode(UUID.randomUUID().toString());
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        user.setRoles(userRequest.getRoles());
+        
+        Set<Role> roles = new java.util.HashSet<>();
+        if (userRequest.getRoles() != null) {
+            for (String roleName : userRequest.getRoles()) {
+                Role role = roleRepository.findByName(com.cnpm.bottomcv.constant.RoleType.valueOf(roleName))
+                        .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleName));
+                roles.add(role);
+            }
+        }
+        user.setRoles(roles);
 
         User savedUser = userRepository.save(user);
 
@@ -95,6 +105,7 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         profileRepository.save(profile);
+        savedUser.setProfile(profile);
 
         return mapToUserResponse(savedUser);
     }
@@ -120,7 +131,13 @@ public class UserServiceImpl implements UserService {
             user.getProfile().setEmail(userRequest.getEmail());
         }
         if (userRequest.getRoles() != null && !userRequest.getRoles().isEmpty()) {
-            user.setRoles(userRequest.getRoles());
+            Set<Role> roles = new java.util.HashSet<>();
+            for (String roleName : userRequest.getRoles()) {
+                Role role = roleRepository.findByName(com.cnpm.bottomcv.constant.RoleType.valueOf(roleName))
+                        .orElseThrow(() -> new ResourceNotFoundException("Role", "name", roleName));
+                roles.add(role);
+            }
+            user.setRoles(roles);
         }
 
         Profile profile = user.getProfile();

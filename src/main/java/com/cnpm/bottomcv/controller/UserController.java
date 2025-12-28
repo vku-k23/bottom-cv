@@ -34,7 +34,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest userRequest) {
         UserResponse newUser = userService.createUser(userRequest);

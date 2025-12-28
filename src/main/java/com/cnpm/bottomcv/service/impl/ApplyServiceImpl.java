@@ -41,6 +41,7 @@ public class ApplyServiceImpl implements ApplyService {
     private final CVRepository cvRepository;
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
+    private final com.cnpm.bottomcv.service.MinioService minioService;
 
     @Override
     public ApplyResponse createApply(ApplyRequest request, Authentication authentication) {
@@ -67,8 +68,8 @@ public class ApplyServiceImpl implements ApplyService {
         RoleType currentRole = Helper.getCurrentRole(authentication);
         switch (currentRole) {
             case CANDIDATE:
-                User user = userRepository.findByEmail(authentication.getName())
-                        .orElseThrow(() -> new ResourceNotFoundException("User", "email", authentication.getName()));
+                User user = userRepository.findByUsername(authentication.getName())
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "username", authentication.getName()));
                 Apply apply = applyRepository.findByIdAndUserId(id, user.getId())
                         .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
                 return mapToResponse(apply);
@@ -91,8 +92,8 @@ public class ApplyServiceImpl implements ApplyService {
 
         switch (currentRole) {
             case CANDIDATE:
-                User user = userRepository.findByEmail(authentication.getName())
-                        .orElseThrow(() -> new ResourceNotFoundException("User", "email", authentication.getName()));
+                User user = userRepository.findByUsername(authentication.getName())
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "username", authentication.getName()));
                 Sort sortObj = sortType.equalsIgnoreCase("ASC")
                         ? Sort.by(sortBy).ascending()
                         : Sort.by(sortBy).descending();
@@ -134,8 +135,8 @@ public class ApplyServiceImpl implements ApplyService {
 
         switch (currentRole) {
             case CANDIDATE:
-                User user = userRepository.findByEmail(authentication.getName())
-                        .orElseThrow(() -> new ResourceNotFoundException("User", "email", authentication.getName()));
+                User user = userRepository.findByUsername(authentication.getName())
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "username", authentication.getName()));
                 if (!applyRepository.existsByIdAndUserId(id, user.getId())) {
                     throw new ResourceNotFoundException("Apply id", "applyId", id.toString());
                 }
@@ -155,12 +156,40 @@ public class ApplyServiceImpl implements ApplyService {
     }
 
     @Override
+    @Transactional
+    public ApplyResponse submitApplication(Long jobId, String coverLetter, org.springframework.web.multipart.MultipartFile cvFile, Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new ResourceNotFoundException("Job id", "jobId", jobId.toString()));
+
+        Apply apply = new Apply();
+        apply.setJob(job);
+        apply.setUser(user);
+        apply.setCoverLetter(coverLetter);
+        apply.setMessage(coverLetter); // Keep backwards compatibility
+        apply.setStatus(com.cnpm.bottomcv.constant.StatusJob.PENDING);
+        apply.setCreatedAt(LocalDateTime.now());
+        apply.setCreatedBy(username);
+
+        if (cvFile != null && !cvFile.isEmpty()) {
+            String cvUrl = minioService.uploadFile(cvFile, "applications/" + user.getId());
+            apply.setCvUrl(cvUrl);
+        }
+
+        applyRepository.save(apply);
+        return mapToResponse(apply);
+    }
+
+    @Override
     public void deleteApply(Long id, Authentication authentication) {
         RoleType currentRole = Helper.getCurrentRole(authentication);
         switch (currentRole) {
             case CANDIDATE:
-                User user = userRepository.findByEmail(authentication.getName())
-                        .orElseThrow(() -> new ResourceNotFoundException("User", "email", authentication.getName()));
+                User user = userRepository.findByUsername(authentication.getName())
+                        .orElseThrow(() -> new ResourceNotFoundException("User", "username", authentication.getName()));
                 if (!applyRepository.existsByIdAndUserId(id, user.getId())) {
                     throw new ResourceNotFoundException("Apply id", "applyId", id.toString());
                 }
@@ -179,8 +208,8 @@ public class ApplyServiceImpl implements ApplyService {
         apply.setStatus(request.getStatus());
 
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", username));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
         Long userId = user.getId();
 
         CV cv = cvRepository.findById(request.getCvId())
@@ -207,7 +236,11 @@ public class ApplyServiceImpl implements ApplyService {
         response.setId(apply.getId());
         response.setMessage(apply.getMessage());
         response.setStatus(apply.getStatus());
-        response.setCvId(apply.getCv().getId());
+        if (apply.getCv() != null) {
+            response.setCvId(apply.getCv().getId());
+        }
+        response.setCvUrl(apply.getCvUrl());
+        response.setCoverLetter(apply.getCoverLetter());
         response.setJobId(apply.getJob().getId());
         response.setUserId(apply.getUser().getId());
         response.setCreatedAt(apply.getCreatedAt());

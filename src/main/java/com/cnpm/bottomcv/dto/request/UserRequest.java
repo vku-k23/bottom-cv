@@ -28,5 +28,5 @@ public class UserRequest extends RegisterUserDto {
     private String address;
 
     @NotNull(message = "Roles is required")
-    private Set<Role> roles = new HashSet<>();
+    private Set<String> roles = new HashSet<>();
 }

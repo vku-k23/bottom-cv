@@ -14,12 +14,25 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.multipart.MultipartFile;
+
 @Tag(name = "Apply job API", description = "The API of apply job")
 @RestController
 @RequestMapping(value = "/api/v1", produces = {MediaType.APPLICATION_JSON_VALUE})
 @RequiredArgsConstructor
 public class ApplyController {
     private final ApplyService applyService;
+
+    @PostMapping(value = "/applies/submit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('CANDIDATE')")
+    public ResponseEntity<ApplyResponse> submitApplication(
+            @RequestParam("jobId") Long jobId,
+            @RequestParam("coverLetter") String coverLetter,
+            @RequestPart("cvFile") MultipartFile cvFile,
+            Authentication authentication) {
+        ApplyResponse response = applyService.submitApplication(jobId, coverLetter, cvFile, authentication);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
 
     @GetMapping("/applies/{id}")
     @PreAuthorize("hasAnyRole('CANDIDATE', 'EMPLOYER', 'ADMIN')")

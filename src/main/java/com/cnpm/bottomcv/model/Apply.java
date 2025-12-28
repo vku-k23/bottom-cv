@@ -26,8 +26,14 @@ public class Apply extends BaseEntity {
     private Job job;
 
     @ManyToOne
-    @JoinColumn(name = "cv_id", nullable = false)
+    @JoinColumn(name = "cv_id")
     private CV cv;
+
+    @Column(name = "cv_url")
+    private String cvUrl;
+
+    @Column(name = "cover_letter", columnDefinition = "TEXT")
+    private String coverLetter;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
