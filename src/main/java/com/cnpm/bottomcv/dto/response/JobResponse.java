@@ -28,6 +28,9 @@ public class JobResponse {
     private Double longitude;
     private String workTime;
     private Double salary;
+    private String careerLevel;
+    private String qualification;
+    private String experience;
     private LocalDateTime expiryDate;
     private StatusJob status;
     private CompanyResponse company;

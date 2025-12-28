@@ -20,17 +20,17 @@ public class JobRequest {
     private String title;
 
     @NotBlank(message = "Job description is required")
-    @Size(max = 500, message = "Job description must be less than or equal to 500 characters")
+    @Size(max = 5000, message = "Job description must be less than or equal to 500 characters")
     @InvalidWords(message = "Job description contains invalid words")
     private String jobDescription;
 
     @NotBlank(message = "Job requirement is required")
-    @Size(max = 500, message = "Job requirement must be less than or equal to 500 characters")
+    @Size(max = 5000, message = "Job requirement must be less than or equal to 500 characters")
     @InvalidWords(message = "Job requirement contains invalid words")
     private String jobRequirement;
 
     @NotBlank(message = "Job benefit is required")
-    @Size(max = 500, message = "Job benefit must be less than or equal to 500 characters")
+    @Size(max = 5000, message = "Job benefit must be less than or equal to 500 characters")
     @InvalidWords(message = "Job benefit contains invalid words")
     private String jobBenefit;
 
@@ -50,6 +50,12 @@ public class JobRequest {
     private String workTime;
 
     private Double salary;
+
+    private String careerLevel;
+
+    private String qualification;
+
+    private String experience;
 
     private LocalDateTime expiryDate;
 

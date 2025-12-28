@@ -26,13 +26,13 @@ public class Job extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String jobDescription;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String jobRequirement;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String jobBenefit;
 
     @Enumerated(EnumType.STRING)
@@ -53,6 +53,12 @@ public class Job extends BaseEntity {
 
     private Double salary;
 
+    private String careerLevel;
+
+    private String qualification;
+
+    private String experience;
+
     private LocalDateTime expiryDate;
 
     @Enumerated(EnumType.STRING)
@@ -61,10 +67,13 @@ public class Job extends BaseEntity {
 
     @ManyToMany
     @JoinTable(name = "job_category", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Category> categories = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "company_id", nullable = false)
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Company company;
 }

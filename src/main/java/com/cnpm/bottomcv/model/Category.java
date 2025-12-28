@@ -29,5 +29,7 @@ public class Category extends BaseEntity {
     private String description;
 
     @ManyToMany(mappedBy = "categories")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Job> jobs = new HashSet<>();
 }

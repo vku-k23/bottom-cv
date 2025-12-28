@@ -18,7 +18,7 @@ public class CategoryRequest {
 
     private String slug;
 
-    @Size(max = 255, message = "Description must be less than 255 characters")
+    @Size(max = 5000, message = "Description must be less than 5000 characters")
     private String description;
 
 }

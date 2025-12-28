@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class JobServiceImpl implements JobService {
 
   private final JobRepository jobRepository;
@@ -326,6 +327,9 @@ public class JobServiceImpl implements JobService {
     job.setLocation(request.getLocation());
     job.setWorkTime(request.getWorkTime());
     job.setSalary(request.getSalary());
+    job.setCareerLevel(request.getCareerLevel());
+    job.setQualification(request.getQualification());
+    job.setExperience(request.getExperience());
     job.setExpiryDate(request.getExpiryDate());
     job.setStatus(request.getStatus());
 
@@ -357,6 +361,9 @@ public class JobServiceImpl implements JobService {
     response.setLocation(job.getLocation());
     response.setWorkTime(job.getWorkTime());
     response.setSalary(job.getSalary());
+    response.setCareerLevel(job.getCareerLevel());
+    response.setQualification(job.getQualification());
+    response.setExperience(job.getExperience());
     response.setExpiryDate(job.getExpiryDate());
     response.setStatus(job.getStatus());
     response.setCreatedAt(job.getCreatedAt());

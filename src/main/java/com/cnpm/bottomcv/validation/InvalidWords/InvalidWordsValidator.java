@@ -14,7 +14,7 @@ public class InvalidWordsValidator implements ConstraintValidator<InvalidWords, 
 
         String stringValue = value.toString().toLowerCase();
         for (String invalidWord : invalidWords()) {
-            if (stringValue.contains(invalidWord)) {
+            if (stringValue.equals(invalidWord)) {
                 context.disableDefaultConstraintViolation();
                 context.buildConstraintViolationWithTemplate("Input contains invalid word: " + invalidWord)
                         .addConstraintViolation();

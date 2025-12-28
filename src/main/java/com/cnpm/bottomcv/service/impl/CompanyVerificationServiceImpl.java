@@ -58,8 +58,13 @@ public class CompanyVerificationServiceImpl {
         Company company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Company", "id", companyId.toString()));
 
-        // In a real system, you'd have a verified field in Company entity
-        // For now, we just log the action
+        if(request.getRejectionReason() != null) {
+            log.warn("Verification request for company ID: {} contains a rejection reason. Ignoring it.", companyId);
+            company.setVerificationNotes(request.getRejectionReason());
+        } else {
+            company.setVerified(true);
+            company.setVerificationNotes(request.getNotes());
+        }
 
         log.info("Successfully verified company ID: {}", companyId);
         return mapToCompanyResponse(company);
