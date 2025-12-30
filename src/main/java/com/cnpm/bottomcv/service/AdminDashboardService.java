@@ -7,7 +7,7 @@ import com.cnpm.bottomcv.dto.response.ChartDataResponse;
 import java.util.List;
 
 public interface AdminDashboardService {
-    AdminStatsResponse getStats();
+    AdminStatsResponse getStats(org.springframework.security.core.Authentication authentication);
 
     List<ActivityLogResponse> getAuditLogs();
 

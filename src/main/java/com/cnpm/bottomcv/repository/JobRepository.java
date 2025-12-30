@@ -18,6 +18,11 @@ public interface JobRepository extends JpaRepository<Job, Long>, JpaSpecificatio
     Long countByCreatedAtAfter(LocalDateTime date);
     
     Long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    Long countByCompanyId(Long companyId);
+    Long countByCompanyIdAndStatus(Long companyId, StatusJob status);
+    Long countByCompanyIdAndCreatedAtAfter(Long companyId, LocalDateTime date);
+    Long countByCompanyIdAndCreatedAtBetween(Long companyId, LocalDateTime startDate, LocalDateTime endDate);
     
     @EntityGraph(attributePaths = {"company"})
     @Query("SELECT j FROM Job j ORDER BY j.createdAt DESC")

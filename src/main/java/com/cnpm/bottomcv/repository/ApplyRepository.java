@@ -22,9 +22,12 @@ public interface ApplyRepository extends JpaRepository<Apply, Long> {
   
   Long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
   
-  Long countByCreatedAtAfter(LocalDateTime date);
+      Long countByCreatedAtAfter(LocalDateTime date);
   
-  @EntityGraph(attributePaths = {"user", "job"})
-  @Query("SELECT a FROM Apply a ORDER BY a.createdAt DESC")
-  List<Apply> findTop5ByOrderByCreatedAtDesc();
-}
+      Long countByJob_CompanyId(Long companyId);
+      Long countByJob_CompanyIdAndCreatedAtAfter(Long companyId, LocalDateTime date);
+      Long countByJob_CompanyIdAndCreatedAtBetween(Long companyId, LocalDateTime startDate, LocalDateTime endDate);
+      
+      @EntityGraph(attributePaths = {"user", "job"})
+      @Query("SELECT a FROM Apply a ORDER BY a.createdAt DESC")
+      List<Apply> findTop5ByOrderByCreatedAtDesc();}

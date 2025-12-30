@@ -23,9 +23,9 @@ public class AdminDashboardController {
     private final AdminDashboardService adminDashboardService;
 
     @GetMapping("/stats")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AdminStatsResponse> getStats() {
-        AdminStatsResponse stats = adminDashboardService.getStats();
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYER')")
+    public ResponseEntity<AdminStatsResponse> getStats(org.springframework.security.core.Authentication authentication) {
+        AdminStatsResponse stats = adminDashboardService.getStats(authentication);
         return ResponseEntity.ok(stats);
     }
 

@@ -2,14 +2,17 @@ package com.cnpm.bottomcv.service.impl;
 
 import com.cnpm.bottomcv.constant.RoleType;
 import com.cnpm.bottomcv.constant.StatusJob;
-import com.cnpm.bottomcv.constant.UserStatus;
 import com.cnpm.bottomcv.dto.response.ActivityLogResponse;
 import com.cnpm.bottomcv.dto.response.AdminStatsResponse;
 import com.cnpm.bottomcv.dto.response.ChartDataResponse;
+import com.cnpm.bottomcv.exception.ResourceNotFoundException; // Added
+import com.cnpm.bottomcv.model.User; // Added
 import com.cnpm.bottomcv.repository.*;
 import com.cnpm.bottomcv.service.AdminDashboardService;
+import com.cnpm.bottomcv.utils.Helper; // Added
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication; // Added
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,70 +33,123 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     private final PaymentRepository paymentRepository;
 
     @Override
-    public AdminStatsResponse getStats() {
-        log.info("Getting admin dashboard statistics");
+    public AdminStatsResponse getStats(Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        Long currentUserId = ((User) authentication.getPrincipal()).getId();
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startOfToday = now.toLocalDate().atStartOfDay();
         LocalDateTime startOfWeek = now.minusDays(7);
         LocalDateTime startOfMonth = now.minusMonths(1);
-
-        // Total counts
-        Long totalUsers = userRepository.count();
-        Long totalCandidates = userRepository.countByRoles_Name(RoleType.CANDIDATE);
-        Long totalEmployers = userRepository.countByRoles_Name(RoleType.EMPLOYER);
-        Long totalCompanies = companyRepository.count();
-        Long totalJobs = jobRepository.count();
-        Long activeJobs = jobRepository.countByStatus(StatusJob.ACTIVE);
-        Long totalApplications = applyRepository.count();
-        Long pendingJobs = jobRepository.countByStatus(StatusJob.PENDING);
-        Long pendingReports = reportRepository.countByResolved(false);
-
-        // New entities in periods
-        Long newUsersToday = userRepository.countByCreatedAtAfter(startOfToday);
-        Long newUsersThisWeek = userRepository.countByCreatedAtAfter(startOfWeek);
-        Long newUsersThisMonth = userRepository.countByCreatedAtAfter(startOfMonth);
-
-        Long newJobsToday = jobRepository.countByCreatedAtAfter(startOfToday);
-        Long newJobsThisWeek = jobRepository.countByCreatedAtAfter(startOfWeek);
-        Long newJobsThisMonth = jobRepository.countByCreatedAtAfter(startOfMonth);
-
-        // Calculate growth rates (comparing this month vs last month)
         LocalDateTime startOfLastMonth = now.minusMonths(2);
-        Long usersLastMonth = userRepository.countByCreatedAtBetween(startOfLastMonth, startOfMonth);
-        Double userGrowthRate = calculateGrowthRate(usersLastMonth, newUsersThisMonth);
 
-        Long jobsLastMonth = jobRepository.countByCreatedAtBetween(startOfLastMonth, startOfMonth);
-        Double jobGrowthRate = calculateGrowthRate(jobsLastMonth, newJobsThisMonth);
+        if (currentRole == RoleType.ADMIN) {
+            log.info("Getting admin dashboard statistics for ADMIN");
 
-        Long appsLastMonth = applyRepository.countByCreatedAtBetween(startOfLastMonth, startOfMonth);
-        Long appsThisMonth = applyRepository.countByCreatedAtAfter(startOfMonth);
-        Double applicationGrowthRate = calculateGrowthRate(appsLastMonth, appsThisMonth);
+            // Total counts
+            Long totalUsers = userRepository.count();
+            Long totalCandidates = userRepository.countByRoles_Name(RoleType.CANDIDATE);
+            Long totalEmployers = userRepository.countByRoles_Name(RoleType.EMPLOYER);
+            Long totalCompanies = companyRepository.count();
+            Long totalJobs = jobRepository.count();
+            Long activeJobs = jobRepository.countByStatus(StatusJob.ACTIVE);
+            Long totalApplications = applyRepository.count();
+            Long pendingJobs = jobRepository.countByStatus(StatusJob.PENDING);
+            Long pendingReports = reportRepository.countByResolved(false);
 
-        // Total revenue (if payment system is implemented)
-        Long totalRevenue = 0L; // placeholder
+            // New entities in periods
+            Long newUsersToday = userRepository.countByCreatedAtAfter(startOfToday);
+            Long newUsersThisWeek = userRepository.countByCreatedAtAfter(startOfWeek);
+            Long newUsersThisMonth = userRepository.countByCreatedAtAfter(startOfMonth);
 
-        return AdminStatsResponse.builder()
-                .totalUsers(totalUsers)
-                .totalCandidates(totalCandidates)
-                .totalEmployers(totalEmployers)
-                .totalCompanies(totalCompanies)
-                .totalJobs(totalJobs)
-                .activeJobs(activeJobs)
-                .totalApplications(totalApplications)
-                .pendingJobs(pendingJobs)
-                .pendingReports(pendingReports)
-                .totalRevenue(totalRevenue)
-                .userGrowthRate(userGrowthRate)
-                .jobGrowthRate(jobGrowthRate)
-                .applicationGrowthRate(applicationGrowthRate)
-                .newUsersToday(newUsersToday)
-                .newUsersThisWeek(newUsersThisWeek)
-                .newUsersThisMonth(newUsersThisMonth)
-                .newJobsToday(newJobsToday)
-                .newJobsThisWeek(newJobsThisWeek)
-                .newJobsThisMonth(newJobsThisMonth)
-                .build();
+            Long newJobsToday = jobRepository.countByCreatedAtAfter(startOfToday);
+            Long newJobsThisWeek = jobRepository.countByCreatedAtAfter(startOfWeek);
+            Long newJobsThisMonth = jobRepository.countByCreatedAtAfter(startOfMonth);
+
+            // Calculate growth rates (comparing this month vs last month)
+            Long usersLastMonth = userRepository.countByCreatedAtBetween(startOfLastMonth, startOfMonth);
+            Double userGrowthRate = calculateGrowthRate(usersLastMonth, newUsersThisMonth);
+
+            Long jobsLastMonth = jobRepository.countByCreatedAtBetween(startOfLastMonth, startOfMonth);
+            Double jobGrowthRate = calculateGrowthRate(jobsLastMonth, newJobsThisMonth);
+
+            Long appsLastMonth = applyRepository.countByCreatedAtBetween(startOfLastMonth, startOfMonth);
+            Long appsThisMonth = applyRepository.countByCreatedAtAfter(startOfMonth);
+            Double applicationGrowthRate = calculateGrowthRate(appsLastMonth, appsThisMonth);
+
+            // Total revenue (if payment system is implemented)
+            Long totalRevenue = 0L; // placeholder
+
+            return AdminStatsResponse.builder()
+                    .totalUsers(totalUsers)
+                    .totalCandidates(totalCandidates)
+                    .totalEmployers(totalEmployers)
+                    .totalCompanies(totalCompanies)
+                    .totalJobs(totalJobs)
+                    .activeJobs(activeJobs)
+                    .totalApplications(totalApplications)
+                    .pendingJobs(pendingJobs)
+                    .pendingReports(pendingReports)
+                    .totalRevenue(totalRevenue)
+                    .userGrowthRate(userGrowthRate)
+                    .jobGrowthRate(jobGrowthRate)
+                    .applicationGrowthRate(applicationGrowthRate)
+                    .newUsersToday(newUsersToday)
+                    .newUsersThisWeek(newUsersThisWeek)
+                    .newUsersThisMonth(newUsersThisMonth)
+                    .newJobsToday(newJobsToday)
+                    .newJobsThisWeek(newJobsThisWeek)
+                    .newJobsThisMonth(newJobsThisMonth)
+                    .build();
+        } else if (currentRole == RoleType.EMPLOYER) {
+            log.info("Getting employer dashboard statistics for EMPLOYER");
+
+            // Find the employer's company
+            User user = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", currentUserId.toString()));
+            Long companyId = user.getCompany().getId(); // Assuming employer user has a company
+
+            // Employer-specific stats
+            Long totalJobs = jobRepository.countByCompanyId(companyId);
+            Long activeJobs = jobRepository.countByCompanyIdAndStatus(companyId, StatusJob.ACTIVE);
+            Long pendingJobs = jobRepository.countByCompanyIdAndStatus(companyId, StatusJob.PENDING);
+            Long totalApplications = applyRepository.countByJob_CompanyId(companyId);
+
+            Long newJobsThisMonth = jobRepository.countByCompanyIdAndCreatedAtAfter(companyId, startOfMonth);
+            Long jobsLastMonth = jobRepository.countByCompanyIdAndCreatedAtBetween(companyId, startOfLastMonth,
+                    startOfMonth);
+            Double jobGrowthRate = calculateGrowthRate(jobsLastMonth, newJobsThisMonth);
+
+            Long appsThisMonth = applyRepository.countByJob_CompanyIdAndCreatedAtAfter(companyId, startOfMonth);
+            Long appsLastMonth = applyRepository.countByJob_CompanyIdAndCreatedAtBetween(companyId, startOfLastMonth,
+                    startOfMonth);
+            Double applicationGrowthRate = calculateGrowthRate(appsLastMonth, appsThisMonth);
+
+            return AdminStatsResponse.builder()
+                    .totalJobs(totalJobs)
+                    .activeJobs(activeJobs)
+                    .pendingJobs(pendingJobs)
+                    .totalApplications(totalApplications)
+                    .jobGrowthRate(jobGrowthRate)
+                    .applicationGrowthRate(applicationGrowthRate)
+                    .newJobsThisMonth(newJobsThisMonth)
+                    // Set other fields to 0 or null as they are not relevant for employer
+                    .totalUsers(0L)
+                    .totalCandidates(0L)
+                    .totalEmployers(0L)
+                    .totalCompanies(0L)
+                    .pendingReports(0L)
+                    .totalRevenue(0L)
+                    .userGrowthRate(0.0)
+                    .newUsersToday(0L)
+                    .newUsersThisWeek(0L)
+                    .newUsersThisMonth(0L)
+                    .newJobsToday(0L)
+                    .newJobsThisWeek(0L)
+                    .build();
+        } else {
+            throw new ResourceNotFoundException("Dashboard statistics", "role", currentRole.name());
+        }
     }
 
     @Override

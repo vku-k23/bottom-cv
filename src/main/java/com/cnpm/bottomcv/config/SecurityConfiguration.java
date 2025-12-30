@@ -40,10 +40,22 @@ public class SecurityConfiguration {
                                 "/api/v1/front/reviews/**",
                                 "/api/v1/front/companies/**")
                         .permitAll()
-                        .requestMatchers("/api/v1/back/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/front/**").hasAnyRole("CANDIDATE", "EMPLOYER")
+                        // Specific rules for EMPLOYER and ADMIN
+                        .requestMatchers(
+                                "/api/v1/back/admin/**", // AdminDashboardController
+                                "/api/v1/back/jobs/**",
+                                "/api/v1/back/companies/**",
+                                "/api/v1/back/settings/**",
+                                "/api/v1/back/applies/**"
+                        ).hasAnyRole("ADMIN", "EMPLOYER")
                         .requestMatchers("/api/v1/back/users/**").hasRole("ADMIN")
-
+                        .requestMatchers("/api/v1/back/moderation/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/back/reports/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/back/categories/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/back/payments/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/back/**").hasRole("ADMIN") // Catch-all for other ADMIN-only back endpoints
+                        // Other rules
+                        .requestMatchers("/api/v1/front/**").hasAnyRole("CANDIDATE", "EMPLOYER")
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
