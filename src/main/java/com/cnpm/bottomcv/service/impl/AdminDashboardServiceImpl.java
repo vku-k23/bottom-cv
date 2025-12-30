@@ -107,7 +107,36 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
             // Find the employer's company
             User user = userRepository.findById(currentUserId)
                     .orElseThrow(() -> new ResourceNotFoundException("User", "id", currentUserId.toString()));
-            Long companyId = user.getCompany().getId(); // Assuming employer user has a company
+
+            // Check if employer has a company
+            if (user.getCompany() == null) {
+                log.warn("Employer user {} does not have a company associated", currentUserId);
+                // Return stats with zero values if no company exists
+                return AdminStatsResponse.builder()
+                        .totalJobs(0L)
+                        .activeJobs(0L)
+                        .pendingJobs(0L)
+                        .totalApplications(0L)
+                        .jobGrowthRate(0.0)
+                        .applicationGrowthRate(0.0)
+                        .newJobsThisMonth(0L)
+                        // Set other fields to 0 or null as they are not relevant for employer
+                        .totalUsers(0L)
+                        .totalCandidates(0L)
+                        .totalEmployers(0L)
+                        .totalCompanies(0L)
+                        .pendingReports(0L)
+                        .totalRevenue(0L)
+                        .userGrowthRate(0.0)
+                        .newUsersToday(0L)
+                        .newUsersThisWeek(0L)
+                        .newUsersThisMonth(0L)
+                        .newJobsToday(0L)
+                        .newJobsThisWeek(0L)
+                        .build();
+            }
+
+            Long companyId = user.getCompany().getId();
 
             // Employer-specific stats
             Long totalJobs = jobRepository.countByCompanyId(companyId);
