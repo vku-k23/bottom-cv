@@ -30,4 +30,24 @@ public interface ApplyRepository extends JpaRepository<Apply, Long> {
       
       @EntityGraph(attributePaths = {"user", "job"})
       @Query("SELECT a FROM Apply a ORDER BY a.createdAt DESC")
-      List<Apply> findTop5ByOrderByCreatedAtDesc();}
+      List<Apply> findTop5ByOrderByCreatedAtDesc();
+      
+  // New methods for Kanban board functionality
+  Page<Apply> findByJob_CompanyId(Long companyId, Pageable pageable);
+  
+  Page<Apply> findByJobId(Long jobId, Pageable pageable);
+  
+  Page<Apply> findByJob_CompanyIdAndStatus(Long companyId, com.cnpm.bottomcv.constant.StatusJob status, Pageable pageable);
+  
+  Page<Apply> findByJobIdAndStatus(Long jobId, com.cnpm.bottomcv.constant.StatusJob status, Pageable pageable);
+  
+  List<Apply> findByJob_CompanyId(Long companyId);
+  
+  List<Apply> findByJobId(Long jobId);
+  
+  @EntityGraph(attributePaths = {"user", "job", "cv"})
+  List<Apply> findByJob_CompanyIdOrderByCreatedAtDesc(Long companyId);
+  
+  @EntityGraph(attributePaths = {"user", "job", "cv"})
+  List<Apply> findByJobIdOrderByCreatedAtDesc(Long jobId);
+}

@@ -23,8 +23,10 @@ public class CompanyController {
     // Back APIs (for dashboard - EMPLOYER, ADMIN)
     @PostMapping("/back/companies")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
-    public ResponseEntity<CompanyResponse> createCompany(@Valid @RequestBody CompanyRequest request) {
-        var response = companyService.createCompany(request);
+    public ResponseEntity<CompanyResponse> createCompany(
+            @Valid @RequestBody CompanyRequest request,
+            org.springframework.security.core.Authentication authentication) {
+        var response = companyService.createCompany(request, authentication);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 

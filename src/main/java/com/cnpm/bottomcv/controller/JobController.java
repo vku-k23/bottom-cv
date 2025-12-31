@@ -27,8 +27,10 @@ public class JobController {
     // Back APIs (for dashboard - EMPLOYER, ADMIN)
     @PostMapping("/back/jobs")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
-    public ResponseEntity<JobResponse> createJob(@Valid @RequestBody JobRequest request) {
-        JobResponse response = jobService.createJob(request);
+    public ResponseEntity<JobResponse> createJob(
+            @Valid @RequestBody JobRequest request,
+            org.springframework.security.core.Authentication authentication) {
+        JobResponse response = jobService.createJob(request, authentication);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -62,6 +64,7 @@ public class JobController {
             }
         }
         request.setCategoryId(filterRequest.getCategoryId());
+        request.setCompanyId(filterRequest.getCompanyId());
         request.setSortBy(filterRequest.getSortBy());
         request.setSortDirection(filterRequest.getSortType());
         request.setPage(filterRequest.getPageNo() != null ? filterRequest.getPageNo() : 0);
@@ -73,8 +76,11 @@ public class JobController {
 
     @PutMapping("/back/jobs/{id}")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
-    public ResponseEntity<JobResponse> updateJob(@PathVariable Long id, @Valid @RequestBody JobRequest request) {
-        JobResponse response = jobService.updateJob(id, request);
+    public ResponseEntity<JobResponse> updateJob(
+            @PathVariable Long id,
+            @Valid @RequestBody JobRequest request,
+            org.springframework.security.core.Authentication authentication) {
+        JobResponse response = jobService.updateJob(id, request, authentication);
         return ResponseEntity.ok(response);
     }
 

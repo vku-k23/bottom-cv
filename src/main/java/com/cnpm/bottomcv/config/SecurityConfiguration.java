@@ -48,10 +48,12 @@ public class SecurityConfiguration {
                                 "/api/v1/back/settings/**",
                                 "/api/v1/back/applies/**"
                         ).hasAnyRole("ADMIN", "EMPLOYER")
+                        // Allow EMPLOYER to GET categories (for job posting), but only ADMIN can modify
+                        .requestMatchers(HttpMethod.GET, "/api/v1/back/categories/**").hasAnyRole("ADMIN", "EMPLOYER")
+                        .requestMatchers("/api/v1/back/categories/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/back/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/back/moderation/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/back/reports/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/back/categories/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/back/payments/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/back/**").hasRole("ADMIN") // Catch-all for other ADMIN-only back endpoints
                         // Other rules

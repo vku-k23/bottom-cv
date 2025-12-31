@@ -21,6 +21,8 @@ public class JobSearchRequest {
 
     private Long categoryId;
 
+    private Long companyId;
+
     private StatusJob status;
 
     private String sortBy;

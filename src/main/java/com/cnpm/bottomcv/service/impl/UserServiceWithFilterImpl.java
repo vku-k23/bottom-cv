@@ -2,6 +2,7 @@ package com.cnpm.bottomcv.service.impl;
 
 import com.cnpm.bottomcv.constant.TimeFormat;
 import com.cnpm.bottomcv.dto.request.UserFilterRequest;
+import com.cnpm.bottomcv.dto.response.CompanyResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.ProfileResponse;
 import com.cnpm.bottomcv.dto.response.RoleResponse;
@@ -97,6 +98,33 @@ public class UserServiceWithFilterImpl {
     private UserResponse mapToUserResponse(User user) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(TimeFormat.DATE_TIME_FORMAT);
 
+        CompanyResponse companyResponse = null;
+        if (user.getCompany() != null) {
+            // Trigger lazy loading if needed
+            user.getCompany().getId();
+            companyResponse = CompanyResponse.builder()
+                    .id(user.getCompany().getId())
+                    .name(user.getCompany().getName())
+                    .slug(user.getCompany().getSlug())
+                    .introduce(user.getCompany().getIntroduce())
+                    .socialMediaLinks(user.getCompany().getSocialMediaLinks())
+                    .addresses(user.getCompany().getAddresses())
+                    .phone(user.getCompany().getPhone())
+                    .email(user.getCompany().getEmail())
+                    .website(user.getCompany().getWebsite())
+                    .logo(user.getCompany().getLogo())
+                    .cover(user.getCompany().getCover())
+                    .industry(user.getCompany().getIndustry())
+                    .companySize(user.getCompany().getCompanySize())
+                    .foundedYear(user.getCompany().getFoundedYear())
+                    .verified(user.getCompany().getVerified())
+                    .verificationNotes(user.getCompany().getVerificationNotes())
+                    .verificationDate(user.getCompany().getVerificationDate())
+                    .verifiedBy(user.getCompany().getVerifiedBy())
+                    .createdAt(user.getCompany().getCreatedAt())
+                    .build();
+        }
+
         return UserResponse.builder()
                 .id(user.getId())
                 .userCode(user.getUserCode())
@@ -106,6 +134,7 @@ public class UserServiceWithFilterImpl {
                 .status(user.getStatus())
                 .createdAt(user.getCreatedAt() != null ? user.getCreatedAt().format(formatter) : null)
                 .updatedAt(user.getUpdatedAt() != null ? user.getUpdatedAt().format(formatter) : null)
+                .company(companyResponse)
                 .build();
     }
 

@@ -4,17 +4,18 @@ import com.cnpm.bottomcv.dto.request.JobRequest;
 import com.cnpm.bottomcv.dto.request.JobSearchRequest;
 import com.cnpm.bottomcv.dto.response.JobResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
+import org.springframework.security.core.Authentication;
 
 import java.io.IOException;
 
 public interface JobService {
-    JobResponse createJob(JobRequest request);
+    JobResponse createJob(JobRequest request, Authentication authentication);
 
     JobResponse getJobById(Long id);
 
     ListResponse<JobResponse> getAllJobs(JobSearchRequest jobSearchRequest);
 
-    JobResponse updateJob(Long id, JobRequest request);
+    JobResponse updateJob(Long id, JobRequest request, Authentication authentication);
 
     void deleteJob(Long id);
 

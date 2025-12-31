@@ -4,9 +4,10 @@ import com.cnpm.bottomcv.dto.request.CompanyFilterRequest;
 import com.cnpm.bottomcv.dto.request.CompanyRequest;
 import com.cnpm.bottomcv.dto.response.CompanyResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
+import org.springframework.security.core.Authentication;
 
 public interface CompanyService {
-    CompanyResponse createCompany(CompanyRequest request);
+    CompanyResponse createCompany(CompanyRequest request, Authentication authentication);
     CompanyResponse updateCompany(Long id, CompanyRequest request);
     void deleteCompany(Long id);
     ListResponse<CompanyResponse> getAllCompanies(int pageNo, int pageSize, String sortBy, String sortType);

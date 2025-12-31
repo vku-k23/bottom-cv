@@ -1,6 +1,8 @@
 package com.cnpm.bottomcv.controller;
 
+import com.cnpm.bottomcv.constant.StatusJob;
 import com.cnpm.bottomcv.dto.request.ApplyRequest;
+import com.cnpm.bottomcv.dto.request.UpdateApplicationStatusRequest;
 import com.cnpm.bottomcv.dto.response.ApplyResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.service.ApplyService;
@@ -72,5 +74,53 @@ public class ApplyController {
     public ResponseEntity<Void> deleteApply(@PathVariable Long id, Authentication authentication) {
         applyService.deleteApply(id, authentication);
         return ResponseEntity.noContent().build();
+    }
+
+    // New endpoints for Kanban board functionality
+
+    @GetMapping("/applies/job/{jobId}")
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
+    public ResponseEntity<ListResponse<ApplyResponse>> getAppliesByJobId(
+            @PathVariable Long jobId,
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortType,
+            Authentication authentication) {
+        ListResponse<ApplyResponse> responses = applyService.getAppliesByJobId(jobId, pageNo, pageSize, sortBy, sortType, authentication);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/applies/job/{jobId}/status/{status}")
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
+    public ResponseEntity<ListResponse<ApplyResponse>> getAppliesByJobIdAndStatus(
+            @PathVariable Long jobId,
+            @PathVariable StatusJob status,
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortType,
+            Authentication authentication) {
+        ListResponse<ApplyResponse> responses = applyService.getAppliesByJobIdAndStatus(jobId, status, pageNo, pageSize, sortBy, sortType, authentication);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/applies/job/{jobId}/grouped-by-status")
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
+    public ResponseEntity<java.util.Map<StatusJob, java.util.List<ApplyResponse>>> getAppliesGroupedByStatus(
+            @PathVariable Long jobId,
+            Authentication authentication) {
+        java.util.Map<StatusJob, java.util.List<ApplyResponse>> grouped = applyService.getAppliesGroupedByStatus(jobId, authentication);
+        return ResponseEntity.ok(grouped);
+    }
+
+    @PutMapping("/applies/{id}/status")
+    @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
+    public ResponseEntity<ApplyResponse> updateApplicationStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateApplicationStatusRequest request,
+            Authentication authentication) {
+        ApplyResponse response = applyService.updateApplicationStatus(id, request, authentication);
+        return ResponseEntity.ok(response);
     }
 }

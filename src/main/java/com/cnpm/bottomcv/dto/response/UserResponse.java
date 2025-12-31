@@ -22,4 +22,5 @@ public class UserResponse {
     private UserStatus status;
     private String createdAt;
     private String updatedAt;
+    private CompanyResponse company; // Company associated with the user (for EMPLOYER)
 }

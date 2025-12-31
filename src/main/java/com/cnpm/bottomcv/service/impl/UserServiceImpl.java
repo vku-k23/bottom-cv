@@ -3,6 +3,7 @@ package com.cnpm.bottomcv.service.impl;
 import com.cnpm.bottomcv.constant.TimeFormat;
 import com.cnpm.bottomcv.dto.request.UserFilterRequest;
 import com.cnpm.bottomcv.dto.request.UserRequest;
+import com.cnpm.bottomcv.dto.response.CompanyResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.ProfileResponse;
 import com.cnpm.bottomcv.dto.response.RoleResponse;
@@ -62,8 +63,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getUserById(Long id) {
+        // Fetch user with company relationship loaded
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User id", "id", id.toString()));
+        // Ensure company is loaded (if LAZY, trigger load)
+        if (user.getCompany() != null) {
+            user.getCompany().getId(); // Trigger lazy loading if needed
+        }
         return mapToUserResponse(user);
     }
 
@@ -175,6 +181,31 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserResponse mapToUserResponse(User user) {
+        CompanyResponse companyResponse = null;
+        if (user.getCompany() != null) {
+            companyResponse = CompanyResponse.builder()
+                    .id(user.getCompany().getId())
+                    .name(user.getCompany().getName())
+                    .slug(user.getCompany().getSlug())
+                    .introduce(user.getCompany().getIntroduce())
+                    .socialMediaLinks(user.getCompany().getSocialMediaLinks())
+                    .addresses(user.getCompany().getAddresses())
+                    .phone(user.getCompany().getPhone())
+                    .email(user.getCompany().getEmail())
+                    .website(user.getCompany().getWebsite())
+                    .logo(user.getCompany().getLogo())
+                    .cover(user.getCompany().getCover())
+                    .industry(user.getCompany().getIndustry())
+                    .companySize(user.getCompany().getCompanySize())
+                    .foundedYear(user.getCompany().getFoundedYear())
+                    .verified(user.getCompany().getVerified())
+                    .verificationNotes(user.getCompany().getVerificationNotes())
+                    .verificationDate(user.getCompany().getVerificationDate())
+                    .verifiedBy(user.getCompany().getVerifiedBy())
+                    .createdAt(user.getCompany().getCreatedAt())
+                    .build();
+        }
+        
         return UserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -184,6 +215,7 @@ public class UserServiceImpl implements UserService {
                 .status(user.getStatus())
                 .createdAt(user.getCreatedAt().format(DateTimeFormatter.ofPattern(TimeFormat.DATE_TIME_FORMAT)))
                 .updatedAt(user.getUpdatedAt().format(DateTimeFormatter.ofPattern(TimeFormat.DATE_TIME_FORMAT)))
+                .company(companyResponse)
                 .build();
     }
 

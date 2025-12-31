@@ -8,11 +8,16 @@ import com.cnpm.bottomcv.dto.response.JobResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.exception.ResourceAlreadyExistException;
 import com.cnpm.bottomcv.exception.ResourceNotFoundException;
+import com.cnpm.bottomcv.constant.RoleType;
 import com.cnpm.bottomcv.model.Category;
 import com.cnpm.bottomcv.model.Company;
 import com.cnpm.bottomcv.model.Job;
+import com.cnpm.bottomcv.model.User;
 import com.cnpm.bottomcv.repository.CompanyRepository;
+import com.cnpm.bottomcv.repository.UserRepository;
 import com.cnpm.bottomcv.service.CompanyService;
+import com.cnpm.bottomcv.utils.Helper;
+import org.springframework.security.core.Authentication;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,9 +37,10 @@ import java.util.stream.Collectors;
 public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;
+    private final UserRepository userRepository;
 
     @Override
-    public CompanyResponse createCompany(CompanyRequest request) {
+    public CompanyResponse createCompany(CompanyRequest request, Authentication authentication) {
         if (companyRepository.existsBySlug(request.getSlug())) {
             throw new ResourceAlreadyExistException("Slug already exists");
         }
@@ -46,6 +52,24 @@ public class CompanyServiceImpl implements CompanyService {
         company.setCreatedBy("system");
 
         companyRepository.save(company);
+
+        // If user is EMPLOYER, automatically assign company to the employer
+        if (authentication != null) {
+            User currentUser = (User) authentication.getPrincipal();
+            RoleType currentRole = Helper.getCurrentRole(authentication);
+            
+            if (currentRole == RoleType.EMPLOYER) {
+                // Check if employer already has a company
+                if (currentUser.getCompany() == null) {
+                    currentUser.setCompany(company);
+                    userRepository.save(currentUser);
+                } else {
+                    // Employer already has a company, throw exception
+                    throw new ResourceAlreadyExistException("EMPLOYER already has a company assigned");
+                }
+            }
+        }
+
         return mapToResponse(company);
     }
 

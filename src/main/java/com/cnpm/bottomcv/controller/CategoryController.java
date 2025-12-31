@@ -41,13 +41,13 @@ public class CategoryController {
     }
 
     @GetMapping("/back/categories/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYER')")
     public ResponseEntity<CategoryResponse> getCategoryByIdForBack(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.getById(id));
     }
 
     @GetMapping("/back/categories")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYER')")
     public ResponseEntity<ListResponse<CategoryResponse>> getAllCategoriesForBack(
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize,

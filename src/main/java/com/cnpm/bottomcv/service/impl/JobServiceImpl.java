@@ -8,8 +8,12 @@ import com.cnpm.bottomcv.dto.response.CategoryResponse;
 import com.cnpm.bottomcv.dto.response.CompanyResponse;
 import com.cnpm.bottomcv.dto.response.JobResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
+import com.cnpm.bottomcv.constant.RoleType;
 import com.cnpm.bottomcv.exception.ResourceNotFoundException;
+import com.cnpm.bottomcv.exception.UnauthorizedException;
 import com.cnpm.bottomcv.model.*;
+import com.cnpm.bottomcv.utils.Helper;
+import org.springframework.security.core.Authentication;
 import com.cnpm.bottomcv.model.ai.Recommendation;
 import com.cnpm.bottomcv.repository.*;
 import com.cnpm.bottomcv.repository.ai.RecommendationRepository;
@@ -139,7 +143,29 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public JobResponse createJob(JobRequest request) {
+  public JobResponse createJob(JobRequest request, Authentication authentication) {
+    // Get current user and role
+    User currentUser = (User) authentication.getPrincipal();
+    RoleType currentRole = Helper.getCurrentRole(authentication);
+    
+    // Validate company access for EMPLOYER
+    if (currentRole == RoleType.EMPLOYER) {
+      // EMPLOYER can only create jobs for their own company
+      if (currentUser.getCompany() == null) {
+        throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
+      }
+      
+      Long userCompanyId = currentUser.getCompany().getId();
+      if (!userCompanyId.equals(request.getCompanyId())) {
+        throw new UnauthorizedException("EMPLOYER can only create jobs for their own company");
+      }
+    }
+    // ADMIN can create jobs for any company, no validation needed
+    
+    // Verify company exists
+    companyRepository.findById(request.getCompanyId())
+        .orElseThrow(() -> new ResourceNotFoundException("Company", "id", request.getCompanyId().toString()));
+    
     Job job = new Job();
     mapRequestToEntity(job, request);
     job.setCreatedAt(LocalDateTime.now());
@@ -191,6 +217,10 @@ public class JobServiceImpl implements JobService {
             root.get("categories")));
       }
 
+      if (jobSearchRequest.getCompanyId() != null) {
+        predicates.add(cb.equal(root.get("company").get("id"), jobSearchRequest.getCompanyId()));
+      }
+
       if (jobSearchRequest.getStatus() != null) {
         predicates.add(cb.equal(root.get("status"), jobSearchRequest.getStatus()));
       }
@@ -219,9 +249,35 @@ public class JobServiceImpl implements JobService {
   }
 
   @Override
-  public JobResponse updateJob(Long id, JobRequest request) {
+  public JobResponse updateJob(Long id, JobRequest request, Authentication authentication) {
     Job job = jobRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Job id", "id", id.toString()));
+
+    // Get current user and role
+    User currentUser = (User) authentication.getPrincipal();
+    RoleType currentRole = Helper.getCurrentRole(authentication);
+    
+    // Validate company access for EMPLOYER
+    if (currentRole == RoleType.EMPLOYER) {
+      // EMPLOYER can only update jobs for their own company
+      if (currentUser.getCompany() == null) {
+        throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
+      }
+      
+      Long userCompanyId = currentUser.getCompany().getId();
+      Long jobCompanyId = job.getCompany().getId();
+      
+      // Check if employer owns the job's company
+      if (!userCompanyId.equals(jobCompanyId)) {
+        throw new UnauthorizedException("EMPLOYER can only update jobs for their own company");
+      }
+      
+      // Also validate the new companyId in request matches employer's company
+      if (!userCompanyId.equals(request.getCompanyId())) {
+        throw new UnauthorizedException("EMPLOYER can only update jobs for their own company");
+      }
+    }
+    // ADMIN can update jobs for any company, no validation needed
 
     mapRequestToEntity(job, request);
     job.setUpdatedAt(LocalDateTime.now());

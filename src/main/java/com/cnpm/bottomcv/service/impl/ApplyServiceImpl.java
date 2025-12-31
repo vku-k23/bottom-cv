@@ -1,11 +1,14 @@
 package com.cnpm.bottomcv.service.impl;
 
 import com.cnpm.bottomcv.constant.RoleType;
+import com.cnpm.bottomcv.constant.StatusJob;
 import com.cnpm.bottomcv.dto.request.ApplyRequest;
+import com.cnpm.bottomcv.dto.request.UpdateApplicationStatusRequest;
 import com.cnpm.bottomcv.dto.response.ApplyResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.exception.BadRequestException;
 import com.cnpm.bottomcv.exception.ResourceNotFoundException;
+import com.cnpm.bottomcv.exception.UnauthorizedException;
 import com.cnpm.bottomcv.model.Apply;
 import com.cnpm.bottomcv.model.CV;
 import com.cnpm.bottomcv.model.Job;
@@ -28,7 +31,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -66,23 +71,33 @@ public class ApplyServiceImpl implements ApplyService {
     @Override
     public ApplyResponse getApplyById(Long id, Authentication authentication) {
         RoleType currentRole = Helper.getCurrentRole(authentication);
+        Apply apply = applyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
+        
         switch (currentRole) {
             case CANDIDATE:
                 User user = userRepository.findByUsername(authentication.getName())
                         .orElseThrow(() -> new ResourceNotFoundException("User", "username", authentication.getName()));
-                Apply apply = applyRepository.findByIdAndUserId(id, user.getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
+                if (!apply.getUser().getId().equals(user.getId())) {
+                    throw new UnauthorizedException("You can only view your own applications.");
+                }
                 return mapToResponse(apply);
             case EMPLOYER:
-                // TODO: Implement logic to allow employers to view applications for their jobs
-                break;
+                User employer = (User) authentication.getPrincipal();
+                if (employer.getCompany() == null) {
+                    throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+                }
+                Long employerCompanyId = employer.getCompany().getId();
+                Long applicationCompanyId = apply.getJob().getCompany().getId();
+                if (!employerCompanyId.equals(applicationCompanyId)) {
+                    throw new UnauthorizedException("You can only view applications for your company's jobs.");
+                }
+                return mapToResponse(apply);
             case ADMIN:
-                // TODO: Admins can view any application
-                break;
+                return mapToResponse(apply);
             default:
                 throw new BadRequestException("Invalid role for viewing an application.");
         }
-        return null;
     }
 
     @Override
@@ -110,22 +125,45 @@ public class ApplyServiceImpl implements ApplyService {
                         .isLast(pageApply.isLast())
                         .build();
             case EMPLOYER:
-                // TODO: Implement logic to allow employers to view applications for their jobs
-                break;
+                User employer = (User) authentication.getPrincipal();
+                if (employer.getCompany() == null) {
+                    throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+                }
+                Long companyId = employer.getCompany().getId();
+                Sort employerSortObj = sortType.equalsIgnoreCase("ASC")
+                        ? Sort.by(sortBy).ascending()
+                        : Sort.by(sortBy).descending();
+                Pageable employerPageable = PageRequest.of(pageNo, pageSize, employerSortObj);
+                Page<Apply> employerPageApply = applyRepository.findByJob_CompanyId(companyId, employerPageable);
+                List<Apply> employerApplies = employerPageApply.getContent();
+
+                return ListResponse.<ApplyResponse>builder()
+                        .data(mapToApplyList(employerApplies))
+                        .pageNo(employerPageApply.getNumber())
+                        .pageSize(employerPageApply.getSize())
+                        .totalElements((int) employerPageApply.getTotalElements())
+                        .totalPages(employerPageApply.getTotalPages())
+                        .isLast(employerPageApply.isLast())
+                        .build();
             case ADMIN:
-                // TODO: Admins can view all applications
-                break;
+                Sort adminSortObj = sortType.equalsIgnoreCase("ASC")
+                        ? Sort.by(sortBy).ascending()
+                        : Sort.by(sortBy).descending();
+                Pageable adminPageable = PageRequest.of(pageNo, pageSize, adminSortObj);
+                Page<Apply> adminPageApply = applyRepository.findAll(adminPageable);
+                List<Apply> adminApplies = adminPageApply.getContent();
+
+                return ListResponse.<ApplyResponse>builder()
+                        .data(mapToApplyList(adminApplies))
+                        .pageNo(adminPageApply.getNumber())
+                        .pageSize(adminPageApply.getSize())
+                        .totalElements((int) adminPageApply.getTotalElements())
+                        .totalPages(adminPageApply.getTotalPages())
+                        .isLast(adminPageApply.isLast())
+                        .build();
             default:
                 throw new BadRequestException("You do not have permission to view applications.");
         }
-        return ListResponse.<ApplyResponse>builder()
-                .data(List.of())
-                .pageNo(pageNo)
-                .pageSize(pageSize)
-                .totalElements(0)
-                .totalPages(0)
-                .isLast(true)
-                .build();
     }
 
     @Override
@@ -148,8 +186,35 @@ public class ApplyServiceImpl implements ApplyService {
                 apply.setUpdatedBy(authentication.getName());
                 applyRepository.save(apply);
                 return mapToResponse(apply);
-            case EMPLOYER, ADMIN:
-                throw new BadRequestException("Only candidates can update their applications.");
+            case EMPLOYER:
+                User employer = (User) authentication.getPrincipal();
+                if (employer.getCompany() == null) {
+                    throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+                }
+                Apply employerApply = applyRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
+                
+                Long employerCompanyId = employer.getCompany().getId();
+                Long applicationCompanyId = employerApply.getJob().getCompany().getId();
+                if (!employerCompanyId.equals(applicationCompanyId)) {
+                    throw new UnauthorizedException("You can only update applications for your company's jobs.");
+                }
+                
+                // For employers, only update status and message (not userId, jobId, cvId)
+                employerApply.setStatus(request.getStatus());
+                employerApply.setMessage(request.getMessage());
+                employerApply.setUpdatedAt(LocalDateTime.now());
+                employerApply.setUpdatedBy(authentication.getName());
+                applyRepository.save(employerApply);
+                return mapToResponse(employerApply);
+            case ADMIN:
+                Apply adminApply = applyRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
+                mapRequestToEntity(adminApply, request, authentication);
+                adminApply.setUpdatedAt(LocalDateTime.now());
+                adminApply.setUpdatedBy(authentication.getName());
+                applyRepository.save(adminApply);
+                return mapToResponse(adminApply);
             default:
                 throw new BadRequestException("Invalid role for updating an application.");
         }
@@ -195,8 +260,23 @@ public class ApplyServiceImpl implements ApplyService {
                 }
                 applyRepository.deleteById(id);
                 break;
-            case EMPLOYER, ADMIN:
-                //TODO: Employers and admins can delete any application
+            case EMPLOYER:
+                User employer = (User) authentication.getPrincipal();
+                if (employer.getCompany() == null) {
+                    throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+                }
+                Apply employerApply = applyRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
+                
+                Long employerCompanyId = employer.getCompany().getId();
+                Long applicationCompanyId = employerApply.getJob().getCompany().getId();
+                if (!employerCompanyId.equals(applicationCompanyId)) {
+                    throw new UnauthorizedException("You can only delete applications for your company's jobs.");
+                }
+                applyRepository.deleteById(id);
+                break;
+            case ADMIN:
+                applyRepository.deleteById(id);
                 break;
             default:
                 throw new BadRequestException("Invalid role for deleting an application.");
@@ -248,5 +328,151 @@ public class ApplyServiceImpl implements ApplyService {
         response.setUpdatedAt(apply.getUpdatedAt());
         response.setUpdatedBy(apply.getUpdatedBy());
         return response;
+    }
+
+    @Override
+    public ListResponse<ApplyResponse> getAppliesByJobId(Long jobId, int pageNo, int pageSize, String sortBy, String sortType, Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        
+        // Verify job exists
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new ResourceNotFoundException("Job", "id", jobId.toString()));
+        
+        // Verify access
+        if (currentRole == RoleType.EMPLOYER) {
+            User employer = (User) authentication.getPrincipal();
+            if (employer.getCompany() == null) {
+                throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+            }
+            Long employerCompanyId = employer.getCompany().getId();
+            Long jobCompanyId = job.getCompany().getId();
+            if (!employerCompanyId.equals(jobCompanyId)) {
+                throw new UnauthorizedException("You can only view applications for your company's jobs.");
+            }
+        }
+        
+        Sort sortObj = sortType.equalsIgnoreCase("ASC")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
+        Page<Apply> pageApply = applyRepository.findByJobId(jobId, pageable);
+        List<Apply> applies = pageApply.getContent();
+
+        return ListResponse.<ApplyResponse>builder()
+                .data(mapToApplyList(applies))
+                .pageNo(pageApply.getNumber())
+                .pageSize(pageApply.getSize())
+                .totalElements((int) pageApply.getTotalElements())
+                .totalPages(pageApply.getTotalPages())
+                .isLast(pageApply.isLast())
+                .build();
+    }
+
+    @Override
+    public ListResponse<ApplyResponse> getAppliesByJobIdAndStatus(Long jobId, StatusJob status, int pageNo, int pageSize, String sortBy, String sortType, Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        
+        // Verify job exists
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new ResourceNotFoundException("Job", "id", jobId.toString()));
+        
+        // Verify access
+        if (currentRole == RoleType.EMPLOYER) {
+            User employer = (User) authentication.getPrincipal();
+            if (employer.getCompany() == null) {
+                throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+            }
+            Long employerCompanyId = employer.getCompany().getId();
+            Long jobCompanyId = job.getCompany().getId();
+            if (!employerCompanyId.equals(jobCompanyId)) {
+                throw new UnauthorizedException("You can only view applications for your company's jobs.");
+            }
+        }
+        
+        Sort sortObj = sortType.equalsIgnoreCase("ASC")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sortObj);
+        Page<Apply> pageApply = applyRepository.findByJobIdAndStatus(jobId, status, pageable);
+        List<Apply> applies = pageApply.getContent();
+
+        return ListResponse.<ApplyResponse>builder()
+                .data(mapToApplyList(applies))
+                .pageNo(pageApply.getNumber())
+                .pageSize(pageApply.getSize())
+                .totalElements((int) pageApply.getTotalElements())
+                .totalPages(pageApply.getTotalPages())
+                .isLast(pageApply.isLast())
+                .build();
+    }
+
+    @Override
+    public Map<StatusJob, List<ApplyResponse>> getAppliesGroupedByStatus(Long jobId, Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        
+        // Verify job exists
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new ResourceNotFoundException("Job", "id", jobId.toString()));
+        
+        // Verify access
+        if (currentRole == RoleType.EMPLOYER) {
+            User employer = (User) authentication.getPrincipal();
+            if (employer.getCompany() == null) {
+                throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+            }
+            Long employerCompanyId = employer.getCompany().getId();
+            Long jobCompanyId = job.getCompany().getId();
+            if (!employerCompanyId.equals(jobCompanyId)) {
+                throw new UnauthorizedException("You can only view applications for your company's jobs.");
+            }
+        }
+        
+        // Get all applications for the job
+        List<Apply> applies = applyRepository.findByJobIdOrderByCreatedAtDesc(jobId);
+        
+        // Group by status
+        Map<StatusJob, List<ApplyResponse>> grouped = new HashMap<>();
+        for (StatusJob status : StatusJob.values()) {
+            grouped.put(status, new java.util.ArrayList<>());
+        }
+        
+        for (Apply apply : applies) {
+            StatusJob status = apply.getStatus();
+            grouped.get(status).add(mapToResponse(apply));
+        }
+        
+        return grouped;
+    }
+
+    @Override
+    @Transactional
+    public ApplyResponse updateApplicationStatus(Long id, UpdateApplicationStatusRequest request, Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        
+        Apply apply = applyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
+        
+        // Verify access
+        if (currentRole == RoleType.EMPLOYER) {
+            User employer = (User) authentication.getPrincipal();
+            if (employer.getCompany() == null) {
+                throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+            }
+            Long employerCompanyId = employer.getCompany().getId();
+            Long applicationCompanyId = apply.getJob().getCompany().getId();
+            if (!employerCompanyId.equals(applicationCompanyId)) {
+                throw new UnauthorizedException("You can only update applications for your company's jobs.");
+            }
+        } else if (currentRole == RoleType.CANDIDATE) {
+            throw new BadRequestException("Candidates cannot update application status. Use updateApply instead.");
+        }
+        
+        // Update status
+        apply.setStatus(request.getStatus());
+        apply.setUpdatedAt(LocalDateTime.now());
+        apply.setUpdatedBy(authentication.getName());
+        applyRepository.save(apply);
+        
+        return mapToResponse(apply);
     }
 }
