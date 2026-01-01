@@ -48,6 +48,8 @@ public class SecurityConfiguration {
                                 "/api/v1/back/settings/**",
                                 "/api/v1/back/applies/**"
                         ).hasAnyRole("ADMIN", "EMPLOYER")
+                        // Allow EMPLOYER and ADMIN to access applies endpoints (for job applications management)
+                        .requestMatchers("/api/v1/applies/**").hasAnyRole("CANDIDATE", "EMPLOYER", "ADMIN")
                         // Allow EMPLOYER to GET categories (for job posting), but only ADMIN can modify
                         .requestMatchers(HttpMethod.GET, "/api/v1/back/categories/**").hasAnyRole("ADMIN", "EMPLOYER")
                         .requestMatchers("/api/v1/back/categories/**").hasRole("ADMIN")

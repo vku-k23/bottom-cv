@@ -412,21 +412,28 @@ public class ApplyServiceImpl implements ApplyService {
 
     @Override
     public Map<String, List<ApplyResponse>> getAppliesGroupedByStatus(Long jobId, Authentication authentication) {
-        RoleType currentRole = Helper.getCurrentRole(authentication);
+        User currentUser = (User) authentication.getPrincipal();
+        
+        // Check if user has ADMIN or EMPLOYER role
+        boolean hasAdminRole = currentUser.getRoles().stream()
+                .anyMatch(role -> role.getName() == RoleType.ADMIN);
+        boolean hasEmployerRole = currentUser.getRoles().stream()
+                .anyMatch(role -> role.getName() == RoleType.EMPLOYER);
+        
+        if (!hasAdminRole && !hasEmployerRole) {
+            throw new UnauthorizedException("Only ADMIN and EMPLOYER can view applications.");
+        }
         
         // Verify job exists
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new ResourceNotFoundException("Job", "id", jobId.toString()));
         
-        // Verify access
-        if (currentRole == RoleType.EMPLOYER) {
-            User employer = (User) authentication.getPrincipal();
-            if (employer.getCompany() == null) {
-                throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+        // For EMPLOYER (without ADMIN role), verify they own the job's company
+        if (hasEmployerRole && !hasAdminRole) {
+            if (currentUser.getCompany() == null) {
+                throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
             }
-            Long employerCompanyId = employer.getCompany().getId();
-            Long jobCompanyId = job.getCompany().getId();
-            if (!employerCompanyId.equals(jobCompanyId)) {
+            if (!job.getCompany().getId().equals(currentUser.getCompany().getId())) {
                 throw new UnauthorizedException("You can only view applications for your company's jobs.");
             }
         }
