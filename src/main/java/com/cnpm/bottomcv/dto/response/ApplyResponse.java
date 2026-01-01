@@ -20,6 +20,7 @@ public class ApplyResponse {
     private String cvUrl;
     private String coverLetter;
     private StatusJob status;
+    private Integer position; // Position/order within the status column
     private String message;
     private LocalDateTime createdAt;
     private String createdBy;

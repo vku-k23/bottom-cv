@@ -18,6 +18,7 @@ import com.cnpm.bottomcv.repository.CVRepository;
 import com.cnpm.bottomcv.repository.JobRepository;
 import com.cnpm.bottomcv.repository.UserRepository;
 import com.cnpm.bottomcv.service.ApplyService;
+import com.cnpm.bottomcv.service.StatusColumnService;
 import com.cnpm.bottomcv.utils.Helper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +49,7 @@ public class ApplyServiceImpl implements ApplyService {
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
     private final com.cnpm.bottomcv.service.MinioService minioService;
+    private final StatusColumnService statusColumnService;
 
     @Override
     public ApplyResponse createApply(ApplyRequest request, Authentication authentication) {
@@ -316,6 +319,7 @@ public class ApplyServiceImpl implements ApplyService {
         response.setId(apply.getId());
         response.setMessage(apply.getMessage());
         response.setStatus(apply.getStatus());
+        response.setPosition(apply.getPosition());
         if (apply.getCv() != null) {
             response.setCvId(apply.getCv().getId());
         }
@@ -407,7 +411,7 @@ public class ApplyServiceImpl implements ApplyService {
     }
 
     @Override
-    public Map<StatusJob, List<ApplyResponse>> getAppliesGroupedByStatus(Long jobId, Authentication authentication) {
+    public Map<String, List<ApplyResponse>> getAppliesGroupedByStatus(Long jobId, Authentication authentication) {
         RoleType currentRole = Helper.getCurrentRole(authentication);
         
         // Verify job exists
@@ -427,18 +431,33 @@ public class ApplyServiceImpl implements ApplyService {
             }
         }
         
-        // Get all applications for the job
-        List<Apply> applies = applyRepository.findByJobIdOrderByCreatedAtDesc(jobId);
+        // Get all status columns for this job (global + job-specific)
+        List<com.cnpm.bottomcv.dto.response.StatusColumnResponse> statusColumns = 
+                statusColumnService.getAllStatusColumns(jobId, authentication);
         
-        // Group by status
-        Map<StatusJob, List<ApplyResponse>> grouped = new HashMap<>();
-        for (StatusJob status : StatusJob.values()) {
-            grouped.put(status, new java.util.ArrayList<>());
+        // Get all applications for the job, sorted by position
+        List<Apply> allApplies = applyRepository.findByJobIdOrderByPositionAscCreatedAtDesc(jobId);
+        
+        // Group applications by statusColumn.code
+        Map<String, List<ApplyResponse>> grouped = new HashMap<>();
+        
+        // Initialize all columns with empty lists (to ensure all columns are shown even if empty)
+        for (com.cnpm.bottomcv.dto.response.StatusColumnResponse column : statusColumns) {
+            grouped.put(column.getCode(), new ArrayList<>());
         }
         
-        for (Apply apply : applies) {
-            StatusJob status = apply.getStatus();
-            grouped.get(status).add(mapToResponse(apply));
+        // Group applications by their statusColumn.code
+        for (Apply apply : allApplies) {
+            String columnCode;
+            if (apply.getStatusColumn() != null) {
+                columnCode = apply.getStatusColumn().getCode();
+            } else {
+                // Fallback: use status enum if statusColumn is null (backward compatibility)
+                columnCode = apply.getStatus() != null ? apply.getStatus().name() : "UNKNOWN";
+            }
+            
+            grouped.computeIfAbsent(columnCode, k -> new ArrayList<>())
+                    .add(mapToResponse(apply));
         }
         
         return grouped;
@@ -447,32 +466,208 @@ public class ApplyServiceImpl implements ApplyService {
     @Override
     @Transactional
     public ApplyResponse updateApplicationStatus(Long id, UpdateApplicationStatusRequest request, Authentication authentication) {
-        RoleType currentRole = Helper.getCurrentRole(authentication);
+        User currentUser = (User) authentication.getPrincipal();
         
         Apply apply = applyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Apply id", "applyId", id.toString()));
         
-        // Verify access
-        if (currentRole == RoleType.EMPLOYER) {
-            User employer = (User) authentication.getPrincipal();
-            if (employer.getCompany() == null) {
-                throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+        // Check if user has ADMIN or EMPLOYER role (endpoint is already protected by @PreAuthorize, but double-check)
+        boolean hasAdminRole = currentUser.getRoles().stream()
+                .anyMatch(role -> role.getName() == RoleType.ADMIN);
+        boolean hasEmployerRole = currentUser.getRoles().stream()
+                .anyMatch(role -> role.getName() == RoleType.EMPLOYER);
+        
+        if (!hasAdminRole && !hasEmployerRole) {
+            throw new BadRequestException("Only ADMIN and EMPLOYER can update application status.");
+        }
+        
+        // For EMPLOYER (without ADMIN role), verify they own the job's company
+        if (hasEmployerRole && !hasAdminRole) {
+            if (currentUser.getCompany() == null) {
+                throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
             }
-            Long employerCompanyId = employer.getCompany().getId();
+            Long employerCompanyId = currentUser.getCompany().getId();
             Long applicationCompanyId = apply.getJob().getCompany().getId();
             if (!employerCompanyId.equals(applicationCompanyId)) {
                 throw new UnauthorizedException("You can only update applications for your company's jobs.");
             }
-        } else if (currentRole == RoleType.CANDIDATE) {
-            throw new BadRequestException("Candidates cannot update application status. Use updateApply instead.");
+        }
+        // ADMIN can update any application, no additional checks needed
+        
+        StatusJob oldStatus = apply.getStatus();
+        StatusJob newStatus = request.getStatus();
+        Long jobId = apply.getJob().getId();
+        
+        // Handle position updates
+        Integer targetPosition = request.getPosition();
+        
+        if (oldStatus.equals(newStatus)) {
+            // Moving within the same column - reorder positions
+            if (targetPosition != null) {
+                reorderWithinColumn(jobId, newStatus, id, targetPosition);
+                apply.setPosition(targetPosition);
+            }
+        } else {
+            // Moving to a different column
+            // Remove from old column (shift positions)
+            if (apply.getPosition() != null) {
+                shiftPositionsInColumn(jobId, oldStatus, apply.getPosition(), -1);
+            }
+            
+            // Add to new column
+            if (targetPosition != null) {
+                // Shift existing items to make room
+                shiftPositionsInColumn(jobId, newStatus, targetPosition, 1);
+                apply.setPosition(targetPosition);
+            } else {
+                // If no position specified, add to end
+                List<Apply> existingInNewColumn = applyRepository.findByJobIdAndStatusOrderByPositionAsc(jobId, newStatus);
+                int maxPosition = existingInNewColumn.stream()
+                        .mapToInt(a -> a.getPosition() != null ? a.getPosition() : -1)
+                        .max()
+                        .orElse(-1);
+                apply.setPosition(maxPosition + 1);
+            }
         }
         
         // Update status
-        apply.setStatus(request.getStatus());
+        apply.setStatus(newStatus);
         apply.setUpdatedAt(LocalDateTime.now());
         apply.setUpdatedBy(authentication.getName());
         applyRepository.save(apply);
         
         return mapToResponse(apply);
+    }
+    
+    /**
+     * Reorder applications within the same column
+     */
+    private void reorderWithinColumn(Long jobId, StatusJob status, Long applicationId, Integer newPosition) {
+        List<Apply> applications = applyRepository.findByJobIdAndStatusOrderByPositionAsc(jobId, status);
+        
+        // Find current position
+        Apply currentApp = applications.stream()
+                .filter(a -> a.getId().equals(applicationId))
+                .findFirst()
+                .orElse(null);
+        
+        if (currentApp == null) return;
+        
+        Integer oldPosition = currentApp.getPosition() != null ? currentApp.getPosition() : 0;
+        
+        if (oldPosition.equals(newPosition)) {
+            return; // No change needed
+        }
+        
+        // Shift other applications
+        if (newPosition > oldPosition) {
+            // Moving down - shift items between old and new position up
+            applications.stream()
+                    .filter(a -> !a.getId().equals(applicationId))
+                    .filter(a -> a.getPosition() != null && a.getPosition() > oldPosition && a.getPosition() <= newPosition)
+                    .forEach(a -> {
+                        a.setPosition(a.getPosition() - 1);
+                        applyRepository.save(a);
+                    });
+        } else {
+            // Moving up - shift items between new and old position down
+            applications.stream()
+                    .filter(a -> !a.getId().equals(applicationId))
+                    .filter(a -> a.getPosition() != null && a.getPosition() >= newPosition && a.getPosition() < oldPosition)
+                    .forEach(a -> {
+                        a.setPosition(a.getPosition() + 1);
+                        applyRepository.save(a);
+                    });
+        }
+    }
+    
+    /**
+     * Shift positions in a column (used when moving between columns or removing items)
+     */
+    private void shiftPositionsInColumn(Long jobId, StatusJob status, Integer fromPosition, int shiftAmount) {
+        List<Apply> applications = applyRepository.findByJobIdAndStatusOrderByPositionAsc(jobId, status);
+        
+        applications.stream()
+                .filter(a -> a.getPosition() != null && a.getPosition() >= fromPosition)
+                .forEach(a -> {
+                    a.setPosition(a.getPosition() + shiftAmount);
+                    applyRepository.save(a);
+                });
+    }
+
+    @Override
+    public org.springframework.core.io.Resource downloadApplicationCV(Long applicationId, Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        User currentUser = (User) authentication.getPrincipal();
+        
+        // Get application
+        Apply apply = applyRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Apply", "id", applicationId.toString()));
+        
+        // Verify access
+        if (currentRole == RoleType.CANDIDATE) {
+            // Candidates can only download their own CV
+            if (!apply.getUser().getId().equals(currentUser.getId())) {
+                throw new UnauthorizedException("You can only download your own CV.");
+            }
+        } else if (currentRole == RoleType.EMPLOYER) {
+            // Employers can only download CVs for applications to their company's jobs
+            if (currentUser.getCompany() == null) {
+                throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
+            }
+            if (!apply.getJob().getCompany().getId().equals(currentUser.getCompany().getId())) {
+                throw new UnauthorizedException("You can only download CVs for applications to your company's jobs.");
+            }
+        } else if (currentRole != RoleType.ADMIN) {
+            throw new UnauthorizedException("You do not have permission to download this CV.");
+        }
+        
+        // Check if CV exists
+        if (apply.getCvUrl() == null || apply.getCvUrl().isEmpty()) {
+            throw new ResourceNotFoundException("CV", "application", applicationId.toString());
+        }
+        
+        // Download file from MinIO
+        try {
+            java.io.InputStream inputStream = minioService.downloadFile(apply.getCvUrl());
+            return new org.springframework.core.io.InputStreamResource(inputStream);
+        } catch (Exception e) {
+            log.error("Error downloading CV for application {}: {}", applicationId, e.getMessage(), e);
+            throw new RuntimeException("Failed to download CV file", e);
+        }
+    }
+
+    @Override
+    public String getApplicationCVFilename(Long applicationId, Authentication authentication) {
+        RoleType currentRole = Helper.getCurrentRole(authentication);
+        User currentUser = (User) authentication.getPrincipal();
+        
+        // Get application
+        Apply apply = applyRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Apply", "id", applicationId.toString()));
+        
+        // Verify access (same as downloadApplicationCV)
+        if (currentRole == RoleType.CANDIDATE) {
+            if (!apply.getUser().getId().equals(currentUser.getId())) {
+                throw new UnauthorizedException("You can only access your own CV.");
+            }
+        } else if (currentRole == RoleType.EMPLOYER) {
+            if (currentUser.getCompany() == null) {
+                throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
+            }
+            if (!apply.getJob().getCompany().getId().equals(currentUser.getCompany().getId())) {
+                throw new UnauthorizedException("You can only access CVs for applications to your company's jobs.");
+            }
+        } else if (currentRole != RoleType.ADMIN) {
+            throw new UnauthorizedException("You do not have permission to access this CV.");
+        }
+        
+        if (apply.getCvUrl() == null || apply.getCvUrl().isEmpty()) {
+            return "CV.pdf";
+        }
+        
+        // Extract filename from cvUrl
+        String cvUrl = apply.getCvUrl();
+        return cvUrl.substring(cvUrl.lastIndexOf("/") + 1);
     }
 }

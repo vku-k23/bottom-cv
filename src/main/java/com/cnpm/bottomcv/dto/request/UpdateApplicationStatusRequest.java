@@ -14,5 +14,7 @@ import lombok.NoArgsConstructor;
 public class UpdateApplicationStatusRequest {
     @NotNull(message = "Status is required")
     private StatusJob status;
+    
+    private Integer position; // Optional: position within the status column (0-based)
 }
 

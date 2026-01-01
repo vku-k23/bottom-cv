@@ -37,7 +37,14 @@ public class Apply extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private StatusJob status;
+    private StatusJob status; // Keep for backward compatibility
+
+    @ManyToOne
+    @JoinColumn(name = "status_column_id")
+    private StatusColumn statusColumn; // Reference to status column
+
+    @Column(name = "position")
+    private Integer position; // Position/order within the status column (0-based)
 
     private String message;
 }

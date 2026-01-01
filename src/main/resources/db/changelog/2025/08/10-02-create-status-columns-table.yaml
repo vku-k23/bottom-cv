@@ -1,0 +1,99 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-status-columns-table
+      author: system
+      changes:
+        - createTable:
+            tableName: status_columns
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: code
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: display_order
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_default
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: job_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_modified_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: last_modified_by
+                  type: VARCHAR(255)
+        - addForeignKeyConstraint:
+            baseTableName: status_columns
+            baseColumnNames: job_id
+            referencedTableName: jobs
+            referencedColumnNames: id
+            constraintName: fk_status_columns_job_id
+            onDelete: CASCADE
+        - addColumn:
+            tableName: applies
+            columns:
+              - column:
+                  name: status_column_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: applies
+            baseColumnNames: status_column_id
+            referencedTableName: status_columns
+            referencedColumnNames: id
+            constraintName: fk_applies_status_column_id
+            onDelete: SET NULL
+        - sql:
+            sql: |
+              -- Insert default status columns
+              INSERT INTO status_columns (name, code, display_order, is_default, created_date, last_modified_date)
+              VALUES 
+                ('Pending', 'PENDING', 0, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                ('Active', 'ACTIVE', 1, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                ('Inactive', 'INACTIVE', 2, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+              ON CONFLICT (code) DO NOTHING;
+      rollback:
+        - dropForeignKeyConstraint:
+            baseTableName: applies
+            constraintName: fk_applies_status_column_id
+        - dropColumn:
+            tableName: applies
+            columnName: status_column_id
+        - dropTable:
+            tableName: status_columns
+

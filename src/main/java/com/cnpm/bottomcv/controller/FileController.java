@@ -101,7 +101,8 @@ public class FileController {
         }
     }
 
-    @GetMapping("/download/{objectName:.+}")
+    @GetMapping("/files/download/{objectName:.+}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Download file", description = "Download a file by its object name")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "File downloaded successfully", content = @Content(mediaType = "application/octet-stream")),
@@ -119,7 +120,8 @@ public class FileController {
         }
     }
 
-    @GetMapping("/url/{objectName:.+}")
+    @GetMapping("/files/url/{objectName:.+}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get file URL", description = "Get a presigned URL for a file")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "URL generated successfully"),

@@ -27,7 +27,11 @@ public interface ApplyService {
     
     ListResponse<ApplyResponse> getAppliesByJobIdAndStatus(Long jobId, com.cnpm.bottomcv.constant.StatusJob status, int pageNo, int pageSize, String sortBy, String sortType, Authentication authentication);
     
-    Map<com.cnpm.bottomcv.constant.StatusJob, List<ApplyResponse>> getAppliesGroupedByStatus(Long jobId, Authentication authentication);
+    Map<String, List<ApplyResponse>> getAppliesGroupedByStatus(Long jobId, Authentication authentication);
     
     ApplyResponse updateApplicationStatus(Long id, UpdateApplicationStatusRequest request, Authentication authentication);
+    
+    org.springframework.core.io.Resource downloadApplicationCV(Long applicationId, Authentication authentication);
+    
+    String getApplicationCVFilename(Long applicationId, Authentication authentication);
 }

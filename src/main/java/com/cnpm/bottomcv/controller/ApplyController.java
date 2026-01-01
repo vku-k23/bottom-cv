@@ -9,6 +9,8 @@ import com.cnpm.bottomcv.service.ApplyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -107,10 +109,10 @@ public class ApplyController {
 
     @GetMapping("/applies/job/{jobId}/grouped-by-status")
     @PreAuthorize("hasAnyRole('EMPLOYER', 'ADMIN')")
-    public ResponseEntity<java.util.Map<StatusJob, java.util.List<ApplyResponse>>> getAppliesGroupedByStatus(
+    public ResponseEntity<java.util.Map<String, java.util.List<ApplyResponse>>> getAppliesGroupedByStatus(
             @PathVariable Long jobId,
             Authentication authentication) {
-        java.util.Map<StatusJob, java.util.List<ApplyResponse>> grouped = applyService.getAppliesGroupedByStatus(jobId, authentication);
+        java.util.Map<String, java.util.List<ApplyResponse>> grouped = applyService.getAppliesGroupedByStatus(jobId, authentication);
         return ResponseEntity.ok(grouped);
     }
 
@@ -122,5 +124,19 @@ public class ApplyController {
             Authentication authentication) {
         ApplyResponse response = applyService.updateApplicationStatus(id, request, authentication);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/applies/{id}/cv/download")
+    @PreAuthorize("hasAnyRole('CANDIDATE', 'EMPLOYER', 'ADMIN')")
+    public ResponseEntity<Resource> downloadApplicationCV(
+            @PathVariable Long id,
+            Authentication authentication) {
+        Resource resource = applyService.downloadApplicationCV(id, authentication);
+        String filename = applyService.getApplicationCVFilename(id, authentication);
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 }

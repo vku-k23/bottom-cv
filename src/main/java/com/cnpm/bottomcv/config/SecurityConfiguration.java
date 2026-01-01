@@ -58,6 +58,8 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/back/**").hasRole("ADMIN") // Catch-all for other ADMIN-only back endpoints
                         // Other rules
                         .requestMatchers("/api/v1/front/**").hasAnyRole("CANDIDATE", "EMPLOYER")
+                        // File download/upload endpoints - require authentication
+                        .requestMatchers("/api/v1/files/**").authenticated()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

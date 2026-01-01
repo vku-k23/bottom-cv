@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-position-to-applies
+      author: system
+      changes:
+        - addColumn:
+            tableName: applies
+            columns:
+              - column:
+                  name: position
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: true
+      rollback:
+        - dropColumn:
+            tableName: applies
+            columnName: position
+

@@ -50,4 +50,16 @@ public interface ApplyRepository extends JpaRepository<Apply, Long> {
   
   @EntityGraph(attributePaths = {"user", "job", "cv"})
   List<Apply> findByJobIdOrderByCreatedAtDesc(Long jobId);
+  
+  // Methods for position management
+  @EntityGraph(attributePaths = {"user", "job", "cv"})
+  List<Apply> findByJobIdAndStatusOrderByPositionAsc(Long jobId, com.cnpm.bottomcv.constant.StatusJob status);
+  
+  @EntityGraph(attributePaths = {"user", "job", "cv"})
+  List<Apply> findByJobIdAndStatusOrderByPositionAscCreatedAtDesc(Long jobId, com.cnpm.bottomcv.constant.StatusJob status);
+  
+  // Get all applications for a job, ordered by position
+  @EntityGraph(attributePaths = {"user", "job", "cv", "statusColumn"})
+  @Query("SELECT a FROM Apply a WHERE a.job.id = :jobId ORDER BY a.position ASC, a.createdAt DESC")
+  List<Apply> findByJobIdOrderByPositionAscCreatedAtDesc(Long jobId);
 }
