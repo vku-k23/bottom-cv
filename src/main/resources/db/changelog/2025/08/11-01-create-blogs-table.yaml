@@ -1,0 +1,113 @@
+databaseChangeLog:
+  - changeSet:
+      id: 11-01-create-blogs-table
+      author: system
+      changes:
+        - createTable:
+            tableName: blogs
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: slug
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: thumbnail
+                  type: text
+              - column:
+                  name: content
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: excerpt
+                  type: text
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: meta_title
+                  type: varchar(255)
+              - column:
+                  name: meta_description
+                  type: text
+              - column:
+                  name: meta_keywords
+                  type: varchar(255)
+              - column:
+                  name: published_at
+                  type: timestamp
+              - column:
+                  name: view_count
+                  type: bigint
+                  defaultValue: 0
+              - column:
+                  name: author_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category_id
+                  type: bigint
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: created_by
+                  type: varchar(255)
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_by
+                  type: varchar(255)
+        - addForeignKeyConstraint:
+            baseTableName: blogs
+            baseColumnNames: author_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_blogs_author
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: blogs
+            baseColumnNames: category_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            constraintName: fk_blogs_category
+            onDelete: SET NULL
+        - createIndex:
+            tableName: blogs
+            indexName: idx_blogs_slug
+            columns:
+              - column:
+                  name: slug
+        - createIndex:
+            tableName: blogs
+            indexName: idx_blogs_status
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            tableName: blogs
+            indexName: idx_blogs_published_at
+            columns:
+              - column:
+                  name: published_at
+
