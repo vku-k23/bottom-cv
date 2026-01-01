@@ -1,10 +1,14 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.RoleType;
 import com.cnpm.bottomcv.dto.request.ProfileRequest;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.ProfileResponse;
 import com.cnpm.bottomcv.exception.ResourceNotFoundException;
+import com.cnpm.bottomcv.exception.UnauthorizedException;
 import com.cnpm.bottomcv.model.Profile;
+import com.cnpm.bottomcv.model.User;
+import com.cnpm.bottomcv.repository.ApplyRepository;
 import com.cnpm.bottomcv.repository.ProfileRepository;
 import com.cnpm.bottomcv.service.ProfileService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
   private final ProfileRepository profileRepository;
+  private final ApplyRepository applyRepository;
   private final com.cnpm.bottomcv.service.MinioService minioService;
 
   @Override
@@ -54,6 +60,41 @@ public class ProfileServiceImpl implements ProfileService {
     return profileRepository.findById(id)
         .map(this::mapToProfileResponse)
         .orElseThrow(() -> new ResourceNotFoundException("Profile id", "id", id.toString()));
+  }
+
+  @Override
+  public ProfileResponse getProfileByUserIdForEmployer(Long userId, Authentication authentication) {
+    User currentUser = (User) authentication.getPrincipal();
+    
+    // Check if user has ADMIN or EMPLOYER role
+    boolean hasAdminRole = currentUser.getRoles().stream()
+            .anyMatch(role -> role.getName() == RoleType.ADMIN);
+    boolean hasEmployerRole = currentUser.getRoles().stream()
+            .anyMatch(role -> role.getName() == RoleType.EMPLOYER);
+    
+    if (!hasAdminRole && !hasEmployerRole) {
+        throw new UnauthorizedException("Only ADMIN and EMPLOYER can view candidate profiles.");
+    }
+    
+    // For EMPLOYER (without ADMIN role), verify the candidate has applied to their company's jobs
+    if (hasEmployerRole && !hasAdminRole) {
+        if (currentUser.getCompany() == null) {
+            throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
+        }
+        
+        Long employerCompanyId = currentUser.getCompany().getId();
+        
+        // Check if the candidate has applied to any job of this employer's company
+        boolean hasApplication = applyRepository.findByJob_CompanyId(employerCompanyId).stream()
+                .anyMatch(apply -> apply.getUser().getId().equals(userId));
+        
+        if (!hasApplication) {
+            throw new UnauthorizedException("You can only view profiles of candidates who applied to your company's jobs.");
+        }
+    }
+    
+    // ADMIN can view any profile, no additional checks needed
+    return getProfileByUserId(userId);
   }
 
   @Override

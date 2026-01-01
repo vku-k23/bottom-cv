@@ -26,4 +26,23 @@ public class ApplyResponse {
     private String createdBy;
     private LocalDateTime updatedAt;
     private String updatedBy;
+    
+    // Candidate profile information (included for employer/admin viewing)
+    private CandidateProfile candidateProfile;
+    
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class CandidateProfile {
+        private Long id;
+        private String firstName;
+        private String lastName;
+        private String email;
+        private String phoneNumber;
+        private String address;
+        private String avatar;
+        private String dayOfBirth;
+        private String description;
+    }
 }

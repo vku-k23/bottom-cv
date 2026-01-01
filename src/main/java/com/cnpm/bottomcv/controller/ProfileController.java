@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -53,10 +54,21 @@ public class ProfileController {
         }
 
         @GetMapping("/back/profile/{id}")
-        public ResponseEntity<ProfileResponse> getProfileById(@RequestParam Long id) {
+        @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYER')")
+        public ResponseEntity<ProfileResponse> getProfileById(@PathVariable Long id) {
                 return ResponseEntity
                                 .status(HttpStatus.OK)
                                 .body(profileService.getProfileById(id));
+        }
+
+        @GetMapping("/back/profile/user/{userId}")
+        @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYER')")
+        public ResponseEntity<ProfileResponse> getProfileByUserId(
+                        @PathVariable Long userId,
+                        Authentication authentication) {
+                return ResponseEntity
+                                .status(HttpStatus.OK)
+                                .body(profileService.getProfileByUserIdForEmployer(userId, authentication));
         }
 
         @PostMapping("/back/profile")

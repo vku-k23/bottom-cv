@@ -331,6 +331,32 @@ public class ApplyServiceImpl implements ApplyService {
         response.setCreatedBy(apply.getCreatedBy());
         response.setUpdatedAt(apply.getUpdatedAt());
         response.setUpdatedBy(apply.getUpdatedBy());
+        
+        // Include candidate profile information
+        if (apply.getUser() != null && apply.getUser().getProfile() != null) {
+            var profile = apply.getUser().getProfile();
+            String avatarUrl = profile.getAvatar();
+            if (avatarUrl != null && !avatarUrl.isEmpty() && !avatarUrl.startsWith("http")) {
+                try {
+                    avatarUrl = minioService.getFileUrl(avatarUrl);
+                } catch (Exception e) {
+                    log.warn("Failed to generate presigned URL for avatar: {}", avatarUrl);
+                }
+            }
+            
+            response.setCandidateProfile(ApplyResponse.CandidateProfile.builder()
+                    .id(profile.getId())
+                    .firstName(profile.getFirstName())
+                    .lastName(profile.getLastName())
+                    .email(profile.getEmail())
+                    .phoneNumber(profile.getPhoneNumber())
+                    .address(profile.getAddress())
+                    .avatar(avatarUrl)
+                    .dayOfBirth(profile.getDayOfBirth() != null ? profile.getDayOfBirth().format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy")) : null)
+                    .description(profile.getDescription())
+                    .build());
+        }
+        
         return response;
     }
 
