@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.controller;
 
+import com.cnpm.bottomcv.constant.AppConstant;
 import com.cnpm.bottomcv.service.FileStorageService;
 import com.cnpm.bottomcv.dto.response.FileUploadResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -134,15 +135,15 @@ public class FileController {
         try {
             if (!fileStorageService.fileExists(objectName)) {
                 Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("success", false);
-                errorResponse.put("message", "File not found");
+                errorResponse.put(AppConstant.RESPONSE_KEY_SUCCESS, false);
+                errorResponse.put(AppConstant.RESPONSE_KEY_MESSAGE, "File not found");
                 return ResponseEntity.notFound().build();
             }
 
             String fileUrl = fileStorageService.getFileUrl(objectName);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
+            response.put(AppConstant.RESPONSE_KEY_SUCCESS, true);
             response.put("fileUrl", fileUrl);
             response.put("objectName", objectName);
 
@@ -150,8 +151,8 @@ public class FileController {
         } catch (Exception e) {
             log.error("Error generating file URL: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", e.getMessage());
+            errorResponse.put(AppConstant.RESPONSE_KEY_SUCCESS, false);
+            errorResponse.put(AppConstant.RESPONSE_KEY_MESSAGE, e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
@@ -170,24 +171,24 @@ public class FileController {
         try {
             if (!fileStorageService.fileExists(objectName)) {
                 Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("success", false);
-                errorResponse.put("message", "File not found");
+                errorResponse.put(AppConstant.RESPONSE_KEY_SUCCESS, false);
+                errorResponse.put(AppConstant.RESPONSE_KEY_MESSAGE, "File not found");
                 return ResponseEntity.notFound().build();
             }
 
             fileStorageService.deleteFile(objectName);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "File deleted successfully");
+            response.put(AppConstant.RESPONSE_KEY_SUCCESS, true);
+            response.put(AppConstant.RESPONSE_KEY_MESSAGE, "File deleted successfully");
             response.put("objectName", objectName);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error deleting file: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", e.getMessage());
+            errorResponse.put(AppConstant.RESPONSE_KEY_SUCCESS, false);
+            errorResponse.put(AppConstant.RESPONSE_KEY_MESSAGE, e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
@@ -200,16 +201,16 @@ public class FileController {
             List<String> files = fileStorageService.listCVs();
 
             Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("files", files);
-            response.put("count", files.size());
+            response.put(AppConstant.RESPONSE_KEY_SUCCESS, true);
+            response.put(AppConstant.RESPONSE_KEY_FILES, files);
+            response.put(AppConstant.RESPONSE_KEY_COUNT, files.size());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error listing CV files: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", e.getMessage());
+            errorResponse.put(AppConstant.RESPONSE_KEY_SUCCESS, false);
+            errorResponse.put(AppConstant.RESPONSE_KEY_MESSAGE, e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
@@ -222,16 +223,16 @@ public class FileController {
             List<String> files = fileStorageService.listProfileImages();
 
             Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("files", files);
-            response.put("count", files.size());
+            response.put(AppConstant.RESPONSE_KEY_SUCCESS, true);
+            response.put(AppConstant.RESPONSE_KEY_FILES, files);
+            response.put(AppConstant.RESPONSE_KEY_COUNT, files.size());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error listing profile images: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", e.getMessage());
+            errorResponse.put(AppConstant.RESPONSE_KEY_SUCCESS, false);
+            errorResponse.put(AppConstant.RESPONSE_KEY_MESSAGE, e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
@@ -244,16 +245,16 @@ public class FileController {
             List<String> files = fileStorageService.listCompanyLogos();
 
             Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("files", files);
-            response.put("count", files.size());
+            response.put(AppConstant.RESPONSE_KEY_SUCCESS, true);
+            response.put(AppConstant.RESPONSE_KEY_FILES, files);
+            response.put(AppConstant.RESPONSE_KEY_COUNT, files.size());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error listing company logos: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", e.getMessage());
+            errorResponse.put(AppConstant.RESPONSE_KEY_SUCCESS, false);
+            errorResponse.put(AppConstant.RESPONSE_KEY_MESSAGE, e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }

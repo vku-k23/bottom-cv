@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.config;
 
+import com.cnpm.bottomcv.constant.AppConstant;
 import com.cnpm.bottomcv.service.jwt.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -37,8 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain
-    ) throws ServletException, IOException {
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -66,12 +66,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     log.info("Setting authentication for user: {}", userEmail);
                     log.info("User authorities: {}", userDetails.getAuthorities());
                     log.info("User enabled: {}", userDetails.isEnabled());
-                    
+
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            userDetails.getAuthorities()
-                    );
+                            userDetails.getAuthorities());
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -95,10 +94,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("error", "Token Expired");
-        errorDetails.put("message", "JWT token has expired. Please login again.");
-        errorDetails.put("status", 401);
-        errorDetails.put("timestamp", System.currentTimeMillis());
+        errorDetails.put(AppConstant.RESPONSE_KEY_ERROR, "Token Expired");
+        errorDetails.put(AppConstant.RESPONSE_KEY_MESSAGE, "JWT token has expired. Please login again.");
+        errorDetails.put(AppConstant.RESPONSE_KEY_STATUS, 401);
+        errorDetails.put(AppConstant.RESPONSE_KEY_TIMESTAMP, System.currentTimeMillis());
 
         response.getWriter().write(objectMapper.writeValueAsString(errorDetails));
     }
@@ -108,10 +107,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("error", "Invalid Token");
-        errorDetails.put("message", "JWT token is invalid: " + message);
-        errorDetails.put("status", 401);
-        errorDetails.put("timestamp", System.currentTimeMillis());
+        errorDetails.put(AppConstant.RESPONSE_KEY_ERROR, "Invalid Token");
+        errorDetails.put(AppConstant.RESPONSE_KEY_MESSAGE, "JWT token is invalid: " + message);
+        errorDetails.put(AppConstant.RESPONSE_KEY_STATUS, 401);
+        errorDetails.put(AppConstant.RESPONSE_KEY_TIMESTAMP, System.currentTimeMillis());
 
         response.getWriter().write(objectMapper.writeValueAsString(errorDetails));
     }
@@ -121,10 +120,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("error", "Authentication Error");
-        errorDetails.put("message", "Authentication processing failed: " + message);
-        errorDetails.put("status", 500);
-        errorDetails.put("timestamp", System.currentTimeMillis());
+        errorDetails.put(AppConstant.RESPONSE_KEY_ERROR, "Authentication Error");
+        errorDetails.put(AppConstant.RESPONSE_KEY_MESSAGE, "Authentication processing failed: " + message);
+        errorDetails.put(AppConstant.RESPONSE_KEY_STATUS, 500);
+        errorDetails.put(AppConstant.RESPONSE_KEY_TIMESTAMP, System.currentTimeMillis());
 
         response.getWriter().write(objectMapper.writeValueAsString(errorDetails));
     }

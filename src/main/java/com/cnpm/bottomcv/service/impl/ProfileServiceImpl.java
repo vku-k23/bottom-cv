@@ -1,5 +1,7 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.AppConstant;
+
 import com.cnpm.bottomcv.constant.RoleType;
 import com.cnpm.bottomcv.dto.request.ProfileRequest;
 import com.cnpm.bottomcv.dto.response.ListResponse;
@@ -59,7 +61,7 @@ public class ProfileServiceImpl implements ProfileService {
   public ProfileResponse getProfileById(Long id) {
     return profileRepository.findById(id)
         .map(this::mapToProfileResponse)
-        .orElseThrow(() -> new ResourceNotFoundException("Profile id", "id", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_PROFILE_ID, "id", id.toString()));
   }
 
   @Override
@@ -115,7 +117,7 @@ public class ProfileServiceImpl implements ProfileService {
   @Override
   public ProfileResponse updateProfile(Long id, ProfileRequest profileRequest) {
     Profile profile = profileRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Profile id", "id", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_PROFILE_ID, "id", id.toString()));
 
     profile.setFirstName(profileRequest.getFirstName().trim());
     profile.setLastName(profileRequest.getLastName().trim());
@@ -133,7 +135,7 @@ public class ProfileServiceImpl implements ProfileService {
   @Override
   public void deleteProfile(Long id) {
     Profile profile = profileRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Profile id", "id", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_PROFILE_ID, "id", id.toString()));
     profileRepository.delete(profile);
   }
 

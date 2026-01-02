@@ -1,5 +1,7 @@
 package com.cnpm.bottomcv.controller;
 
+import com.cnpm.bottomcv.constant.AppConstant;
+
 import com.cnpm.bottomcv.dto.request.SavedCandidateRequest;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.SavedCandidateResponse;
@@ -45,7 +47,7 @@ public class SavedCandidateController {
         boolean isSaved = response != null;
         return ResponseEntity.ok(Map.of(
                 "saved", isSaved,
-                "message", isSaved ? "Candidate saved successfully" : "Candidate removed from saved list",
+                AppConstant.RESPONSE_KEY_MESSAGE, isSaved ? "Candidate saved successfully" : "Candidate removed from saved list",
                 "data", response != null ? response : Map.of()));
     }
 
@@ -56,7 +58,7 @@ public class SavedCandidateController {
             @PathVariable Long id,
             Authentication authentication) {
         savedCandidateService.removeSavedCandidate(id, authentication);
-        return ResponseEntity.ok(Map.of("message", "Saved candidate removed successfully"));
+        return ResponseEntity.ok(Map.of(AppConstant.RESPONSE_KEY_MESSAGE, "Saved candidate removed successfully"));
     }
 
     @DeleteMapping("/candidate/{candidateId}/job/{jobId}")
@@ -67,7 +69,7 @@ public class SavedCandidateController {
             @PathVariable Long jobId,
             Authentication authentication) {
         savedCandidateService.removeSavedCandidateByIds(candidateId, jobId, authentication);
-        return ResponseEntity.ok(Map.of("message", "Saved candidate removed successfully"));
+        return ResponseEntity.ok(Map.of(AppConstant.RESPONSE_KEY_MESSAGE, "Saved candidate removed successfully"));
     }
 
     @GetMapping

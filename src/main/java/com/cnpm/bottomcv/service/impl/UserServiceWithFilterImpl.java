@@ -1,5 +1,7 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.AppConstant;
+
 import com.cnpm.bottomcv.constant.TimeFormat;
 import com.cnpm.bottomcv.dto.request.UserFilterRequest;
 import com.cnpm.bottomcv.dto.response.CompanyResponse;
@@ -42,10 +44,10 @@ public class UserServiceWithFilterImpl {
             if (filterRequest.getSearch() != null && !filterRequest.getSearch().isEmpty()) {
                 String searchPattern = "%" + filterRequest.getSearch().toLowerCase() + "%";
                 Predicate searchPredicate = cb.or(
-                        cb.like(cb.lower(root.get("username")), searchPattern),
-                        cb.like(cb.lower(root.join("profile").get("email")), searchPattern),
-                        cb.like(cb.lower(root.join("profile").get("firstName")), searchPattern),
-                        cb.like(cb.lower(root.join("profile").get("lastName")), searchPattern));
+                        cb.like(cb.lower(root.get(AppConstant.FIELD_USERNAME)), searchPattern),
+                        cb.like(cb.lower(root.join(AppConstant.FIELD_PROFILE).get("email")), searchPattern),
+                        cb.like(cb.lower(root.join(AppConstant.FIELD_PROFILE).get("firstName")), searchPattern),
+                        cb.like(cb.lower(root.join(AppConstant.FIELD_PROFILE).get("lastName")), searchPattern));
                 predicates.add(searchPredicate);
             }
 

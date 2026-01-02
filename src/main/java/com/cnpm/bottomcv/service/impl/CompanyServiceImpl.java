@@ -1,5 +1,7 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.AppConstant;
+
 import com.cnpm.bottomcv.dto.request.CompanyFilterRequest;
 import com.cnpm.bottomcv.dto.request.CompanyRequest;
 import com.cnpm.bottomcv.dto.response.CategoryResponse;
@@ -77,7 +79,7 @@ public class CompanyServiceImpl implements CompanyService {
     public CompanyResponse getCompanyById(Long id) {
         System.out.println("DEBUG: Fetching company with ID: " + id);
         Company company = companyRepository.findByIdWithJobs(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_COMPANY_ID_LABEL, AppConstant.FIELD_COMPANY_ID, id.toString()));
         System.out.println("DEBUG: Company fetched: " + company.getName());
         System.out.println("DEBUG: Jobs collection class: " + company.getJobs().getClass().getName());
         System.out.println("DEBUG: Jobs size: " + company.getJobs().size());
@@ -160,7 +162,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public CompanyResponse updateCompany(Long id, CompanyRequest request) {
         Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_COMPANY_ID_LABEL, AppConstant.FIELD_COMPANY_ID, id.toString()));
 
         if (!company.getSlug().equals(request.getSlug()) && companyRepository.existsBySlug(request.getSlug())) {
             throw new ResourceAlreadyExistException("Slug already exists");
@@ -178,7 +180,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public void deleteCompany(Long id) {
         Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId", id.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_COMPANY_ID_LABEL, AppConstant.FIELD_COMPANY_ID, id.toString()));
         companyRepository.delete(company);
     }
 

@@ -1,5 +1,7 @@
 package com.cnpm.bottomcv.config;
 
+import com.cnpm.bottomcv.constant.AppConstant;
+
 import com.cnpm.bottomcv.constant.RoleType;
 import com.cnpm.bottomcv.dto.RegisterUserDto;
 import com.cnpm.bottomcv.exception.ResourceNotFoundException;
@@ -58,13 +60,13 @@ public class DataInitializer {
             log.info("Initialized default roles in the database.");
         }
 
-        if (!userRepository.existsByUsername("admin")) {
+        if (!userRepository.existsByUsername(AppConstant.ADMIN_USERNAME)) {
             Role roleAdmin = roleRepository.findByName(RoleType.ADMIN)
                     .orElseThrow(() -> new ResourceNotFoundException("Role id", "id", RoleType.ADMIN.toString()));
 
             RegisterUserDto registerUserDto = RegisterUserDto.builder()
-                    .username("admin")
-                    .password("admin")
+                    .username(AppConstant.ADMIN_USERNAME)
+                    .password(AppConstant.ADMIN_USERNAME)
                     .firstName("Admin")
                     .lastName("User")
                     .dayOfBirth(LocalDate.of(1990, 1, 1))

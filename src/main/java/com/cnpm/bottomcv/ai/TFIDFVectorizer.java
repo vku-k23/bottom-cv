@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.ai;
 
+import com.cnpm.bottomcv.constant.AppConstant;
 import com.cnpm.bottomcv.model.CV;
 import com.cnpm.bottomcv.model.Job;
 import com.cnpm.bottomcv.model.User;
@@ -67,7 +68,7 @@ public class TFIDFVectorizer {
         Document doc = new Document();
         FieldType fieldType = new FieldType(TextField.TYPE_STORED);
         fieldType.setStoreTermVectors(true); // Bắt buộc để lấy được term vectors
-        Field contentField = new Field("content", content, fieldType);
+        Field contentField = new Field(AppConstant.FIELD_CONTENT, content, fieldType);
         doc.add(contentField);
         doc.add(new StringField("type", type, Field.Store.YES));
         doc.add(new StringField("id", id, Field.Store.YES));
@@ -77,7 +78,7 @@ public class TFIDFVectorizer {
     private void buildTermDictionary() throws IOException {
         try (IndexReader reader = DirectoryReader.open(directory)) {
             for (int i = 0; i < reader.maxDoc(); i++) {
-                Terms terms = reader.getTermVector(i, "content");
+                Terms terms = reader.getTermVector(i, AppConstant.FIELD_CONTENT);
                 if (terms == null) continue;
                 TermsEnum termsEnum = terms.iterator();
                 BytesRef term;
@@ -97,7 +98,7 @@ public class TFIDFVectorizer {
         Map<String, Integer> termFreq = new HashMap<>();
 
         // Phân tích văn bản để lấy TF
-        TokenStream stream = analyzer.tokenStream("content", text);
+        TokenStream stream = analyzer.tokenStream(AppConstant.FIELD_CONTENT, text);
         stream.reset();
         while (stream.incrementToken()) {
             String term = stream.getAttribute(org.apache.lucene.analysis.tokenattributes.CharTermAttribute.class).toString();
@@ -116,7 +117,7 @@ public class TFIDFVectorizer {
                     int termIndex = termToIndex.get(term);
                     double tf = (double) freq / totalTerms;
                     double idf = Math.log((double) reader.numDocs() /
-                            (reader.docFreq(new Term("content", term)) + 1)) + 1;
+                            (reader.docFreq(new Term(AppConstant.FIELD_CONTENT, term)) + 1)) + 1;
                     tfidfVector[termIndex] = tf * idf;
                 }
             }
