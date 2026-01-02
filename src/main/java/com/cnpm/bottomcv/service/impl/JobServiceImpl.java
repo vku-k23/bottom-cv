@@ -1,6 +1,8 @@
 package com.cnpm.bottomcv.service.impl;
 
 import com.cnpm.bottomcv.constant.AppConstant;
+import com.cnpm.bottomcv.constant.JobType;
+import com.cnpm.bottomcv.constant.StatusJob;
 
 import com.cnpm.bottomcv.ai.TFIDFVectorizer;
 import com.cnpm.bottomcv.config.RabbitMQConfig;
@@ -22,7 +24,9 @@ import com.cnpm.bottomcv.repository.ai.RecommendationRepository;
 import com.cnpm.bottomcv.service.JobService;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -149,25 +153,25 @@ public class JobServiceImpl implements JobService {
     // Get current user and role
     User currentUser = (User) authentication.getPrincipal();
     RoleType currentRole = Helper.getCurrentRole(authentication);
-    
+
     // Validate company access for EMPLOYER
     if (currentRole == RoleType.EMPLOYER) {
       // EMPLOYER can only create jobs for their own company
       if (currentUser.getCompany() == null) {
         throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
       }
-      
+
       Long userCompanyId = currentUser.getCompany().getId();
       if (!userCompanyId.equals(request.getCompanyId())) {
         throw new UnauthorizedException("EMPLOYER can only create jobs for their own company");
       }
     }
     // ADMIN can create jobs for any company, no validation needed
-    
+
     // Verify company exists
     companyRepository.findById(request.getCompanyId())
         .orElseThrow(() -> new ResourceNotFoundException("Company", "id", request.getCompanyId().toString()));
-    
+
     Job job = new Job();
     mapRequestToEntity(job, request);
     job.setCreatedAt(LocalDateTime.now());
@@ -185,50 +189,7 @@ public class JobServiceImpl implements JobService {
 
   @Override
   public ListResponse<JobResponse> getAllJobs(JobSearchRequest jobSearchRequest) {
-    Specification<Job> spec = (root, query, cb) -> {
-      var predicates = new java.util.ArrayList<Predicate>();
-
-      if (jobSearchRequest.getKeyword() != null && !jobSearchRequest.getKeyword().isEmpty()) {
-        String keyword = "%" + jobSearchRequest.getKeyword().toLowerCase() + "%";
-        predicates.add(cb.or(
-            cb.like(cb.lower(root.get("title")), keyword),
-            cb.like(cb.lower(root.get("jobDescription")), keyword)));
-      }
-
-      if (jobSearchRequest.getLocation() != null && !jobSearchRequest.getLocation().isEmpty()) {
-        predicates.add(cb.equal(root.get("location"), jobSearchRequest.getLocation()));
-      }
-
-      if (jobSearchRequest.getJobType() != null) {
-        predicates.add(cb.equal(root.get("jobType"), jobSearchRequest.getJobType()));
-      }
-
-      if (jobSearchRequest.getMinSalary() != null) {
-        predicates.add(cb.greaterThanOrEqualTo(root.get("salary"), jobSearchRequest.getMinSalary()));
-      }
-
-      if (jobSearchRequest.getMaxSalary() != null) {
-        predicates.add(cb.lessThanOrEqualTo(root.get("salary"), jobSearchRequest.getMaxSalary()));
-      }
-
-      if (jobSearchRequest.getCategoryId() != null) {
-        predicates.add(cb.isMember(
-            categoryRepository.findById(jobSearchRequest.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category id", "id",
-                    jobSearchRequest.getCategoryId().toString())),
-            root.get("categories")));
-      }
-
-      if (jobSearchRequest.getCompanyId() != null) {
-        predicates.add(cb.equal(root.get("company").get("id"), jobSearchRequest.getCompanyId()));
-      }
-
-      if (jobSearchRequest.getStatus() != null) {
-        predicates.add(cb.equal(root.get("status"), jobSearchRequest.getStatus()));
-      }
-
-      return cb.and(predicates.toArray(new Predicate[0]));
-    };
+    Specification<Job> spec = buildJobSearchSpecification(jobSearchRequest);
 
     Sort sort = Sort.unsorted();
     if (jobSearchRequest.getSortBy() != null && jobSearchRequest.getSortDirection() != null) {
@@ -258,22 +219,22 @@ public class JobServiceImpl implements JobService {
     // Get current user and role
     User currentUser = (User) authentication.getPrincipal();
     RoleType currentRole = Helper.getCurrentRole(authentication);
-    
+
     // Validate company access for EMPLOYER
     if (currentRole == RoleType.EMPLOYER) {
       // EMPLOYER can only update jobs for their own company
       if (currentUser.getCompany() == null) {
         throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
       }
-      
+
       Long userCompanyId = currentUser.getCompany().getId();
       Long jobCompanyId = job.getCompany().getId();
-      
+
       // Check if employer owns the job's company
       if (!userCompanyId.equals(jobCompanyId)) {
         throw new UnauthorizedException("EMPLOYER can only update jobs for their own company");
       }
-      
+
       // Also validate the new companyId in request matches employer's company
       if (!userCompanyId.equals(request.getCompanyId())) {
         throw new UnauthorizedException("EMPLOYER can only update jobs for their own company");
@@ -392,7 +353,8 @@ public class JobServiceImpl implements JobService {
     job.setStatus(request.getStatus());
 
     Company company = companyRepository.findById(request.getCompanyId())
-        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_COMPANY_ID_LABEL, "id", request.getCompanyId().toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_COMPANY_ID_LABEL, "id",
+            request.getCompanyId().toString()));
     job.setCompany(company);
 
     if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
@@ -463,6 +425,78 @@ public class JobServiceImpl implements JobService {
     categoryResponse.setSlug(category.getSlug());
     categoryResponse.setDescription(category.getDescription());
     return categoryResponse;
+  }
+
+  // Helper methods to reduce cognitive complexity
+
+  /**
+   * Build JPA Specification for job search
+   */
+  private Specification<Job> buildJobSearchSpecification(JobSearchRequest jobSearchRequest) {
+    return (root, query, cb) -> {
+      var predicates = new java.util.ArrayList<Predicate>();
+
+      addKeywordPredicate(predicates, root, cb, jobSearchRequest.getKeyword());
+      addLocationPredicate(predicates, root, cb, jobSearchRequest.getLocation());
+      addJobTypePredicate(predicates, root, cb, jobSearchRequest.getJobType());
+      addSalaryPredicates(predicates, root, cb, jobSearchRequest.getMinSalary(), jobSearchRequest.getMaxSalary());
+      addCategoryPredicate(predicates, root, cb, jobSearchRequest.getCategoryId());
+      addCompanyPredicate(predicates, root, cb, jobSearchRequest.getCompanyId());
+      addStatusPredicate(predicates, root, cb, jobSearchRequest.getStatus());
+
+      return cb.and(predicates.toArray(new Predicate[0]));
+    };
+  }
+
+  private void addKeywordPredicate(List<Predicate> predicates, Root<Job> root, CriteriaBuilder cb, String keyword) {
+    if (keyword != null && !keyword.isEmpty()) {
+      String searchPattern = "%" + keyword.toLowerCase() + "%";
+      predicates.add(cb.or(
+          cb.like(cb.lower(root.get("title")), searchPattern),
+          cb.like(cb.lower(root.get("jobDescription")), searchPattern)));
+    }
+  }
+
+  private void addLocationPredicate(List<Predicate> predicates, Root<Job> root, CriteriaBuilder cb, String location) {
+    if (location != null && !location.isEmpty()) {
+      predicates.add(cb.equal(root.get("location"), location));
+    }
+  }
+
+  private void addJobTypePredicate(List<Predicate> predicates, Root<Job> root, CriteriaBuilder cb, JobType jobType) {
+    if (jobType != null) {
+      predicates.add(cb.equal(root.get("jobType"), jobType));
+    }
+  }
+
+  private void addSalaryPredicates(List<Predicate> predicates, Root<Job> root, CriteriaBuilder cb,
+      Double minSalary, Double maxSalary) {
+    if (minSalary != null) {
+      predicates.add(cb.greaterThanOrEqualTo(root.get("salary"), minSalary));
+    }
+    if (maxSalary != null) {
+      predicates.add(cb.lessThanOrEqualTo(root.get("salary"), maxSalary));
+    }
+  }
+
+  private void addCategoryPredicate(List<Predicate> predicates, Root<Job> root, CriteriaBuilder cb, Long categoryId) {
+    if (categoryId != null) {
+      Category category = categoryRepository.findById(categoryId)
+          .orElseThrow(() -> new ResourceNotFoundException("Category id", "id", categoryId.toString()));
+      predicates.add(cb.isMember(category, root.get("categories")));
+    }
+  }
+
+  private void addCompanyPredicate(List<Predicate> predicates, Root<Job> root, CriteriaBuilder cb, Long companyId) {
+    if (companyId != null) {
+      predicates.add(cb.equal(root.get("company").get("id"), companyId));
+    }
+  }
+
+  private void addStatusPredicate(List<Predicate> predicates, Root<Job> root, CriteriaBuilder cb, StatusJob status) {
+    if (status != null) {
+      predicates.add(cb.equal(root.get("status"), status));
+    }
   }
 }
 

@@ -459,62 +459,39 @@ public class ApplyServiceImpl implements ApplyService {
     @Override
     public Map<String, List<ApplyResponse>> getAppliesGroupedByStatus(Long jobId, Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
+        verifyApplicationAccess(currentUser);
 
-        // Check if user has ADMIN or EMPLOYER role
-        boolean hasAdminRole = currentUser.getRoles().stream()
-                .anyMatch(role -> role.getName() == RoleType.ADMIN);
-        boolean hasEmployerRole = currentUser.getRoles().stream()
-                .anyMatch(role -> role.getName() == RoleType.EMPLOYER);
-
-        if (!hasAdminRole && !hasEmployerRole) {
-            throw new UnauthorizedException("Only ADMIN and EMPLOYER can view applications.");
-        }
-
-        // Verify job exists
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new ResourceNotFoundException("Job", "id", jobId.toString()));
 
-        // For EMPLOYER (without ADMIN role), verify they own the job's company
-        if (hasEmployerRole && !hasAdminRole) {
-            if (currentUser.getCompany() == null) {
-                throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
-            }
-            if (!job.getCompany().getId().equals(currentUser.getCompany().getId())) {
-                throw new UnauthorizedException("You can only view applications for your company's jobs.");
-            }
-        }
+        verifyEmployerJobAccess(currentUser, job);
 
-        // Get all status columns for this job (global + job-specific)
         List<com.cnpm.bottomcv.dto.response.StatusColumnResponse> statusColumns = statusColumnService
                 .getAllStatusColumns(jobId, authentication);
 
-        // Get all applications for the job, sorted by position
         List<Apply> allApplies = applyRepository.findByJobIdOrderByPositionAscCreatedAtDesc(jobId);
 
-        // Group applications by statusColumn.code
-        Map<String, List<ApplyResponse>> grouped = new HashMap<>();
+        Map<String, List<ApplyResponse>> grouped = initializeGroupedMap(statusColumns);
+        groupApplicationsByColumn(allApplies, grouped);
 
-        // Initialize all columns with empty lists (to ensure all columns are shown even
-        // if empty)
+        return grouped;
+    }
+
+    private Map<String, List<ApplyResponse>> initializeGroupedMap(
+            List<com.cnpm.bottomcv.dto.response.StatusColumnResponse> statusColumns) {
+        Map<String, List<ApplyResponse>> grouped = new HashMap<>();
         for (com.cnpm.bottomcv.dto.response.StatusColumnResponse column : statusColumns) {
             grouped.put(column.getCode(), new ArrayList<>());
         }
+        return grouped;
+    }
 
-        // Group applications by their statusColumn.code
+    private void groupApplicationsByColumn(List<Apply> allApplies, Map<String, List<ApplyResponse>> grouped) {
         for (Apply apply : allApplies) {
-            String columnCode;
-            if (apply.getStatusColumn() != null) {
-                columnCode = apply.getStatusColumn().getCode();
-            } else {
-                // Fallback: use status enum if statusColumn is null (backward compatibility)
-                columnCode = apply.getStatus() != null ? apply.getStatus().name() : "UNKNOWN";
-            }
-
+            String columnCode = getColumnCode(apply);
             grouped.computeIfAbsent(columnCode, k -> new ArrayList<>())
                     .add(mapToResponse(apply));
         }
-
-        return grouped;
     }
 
     @Override
@@ -527,74 +504,53 @@ public class ApplyServiceImpl implements ApplyService {
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_APPLY_ID_LABEL,
                         AppConstant.FIELD_APPLY_ID, id.toString()));
 
-        // Check if user has ADMIN or EMPLOYER role (endpoint is already protected by
-        // @PreAuthorize, but double-check)
-        boolean hasAdminRole = currentUser.getRoles().stream()
-                .anyMatch(role -> role.getName() == RoleType.ADMIN);
-        boolean hasEmployerRole = currentUser.getRoles().stream()
-                .anyMatch(role -> role.getName() == RoleType.EMPLOYER);
-
-        if (!hasAdminRole && !hasEmployerRole) {
-            throw new BadRequestException("Only ADMIN and EMPLOYER can update application status.");
-        }
-
-        // For EMPLOYER (without ADMIN role), verify they own the job's company
-        if (hasEmployerRole && !hasAdminRole) {
-            if (currentUser.getCompany() == null) {
-                throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
-            }
-            Long employerCompanyId = currentUser.getCompany().getId();
-            Long applicationCompanyId = apply.getJob().getCompany().getId();
-            if (!employerCompanyId.equals(applicationCompanyId)) {
-                throw new UnauthorizedException("You can only update applications for your company's jobs.");
-            }
-        }
-        // ADMIN can update any application, no additional checks needed
+        verifyApplicationAccess(currentUser);
+        verifyEmployerJobAccess(currentUser, apply.getJob());
 
         StatusJob oldStatus = apply.getStatus();
         StatusJob newStatus = request.getStatus();
         Long jobId = apply.getJob().getId();
-
-        // Handle position updates
         Integer targetPosition = request.getPosition();
 
-        if (oldStatus.equals(newStatus)) {
-            // Moving within the same column - reorder positions
-            if (targetPosition != null) {
-                reorderWithinColumn(jobId, newStatus, id, targetPosition);
-                apply.setPosition(targetPosition);
-            }
-        } else {
-            // Moving to a different column
-            // Remove from old column (shift positions)
-            if (apply.getPosition() != null) {
-                shiftPositionsInColumn(jobId, oldStatus, apply.getPosition(), -1);
-            }
+        updateApplicationPosition(apply, jobId, oldStatus, newStatus, targetPosition);
 
-            // Add to new column
-            if (targetPosition != null) {
-                // Shift existing items to make room
-                shiftPositionsInColumn(jobId, newStatus, targetPosition, 1);
-                apply.setPosition(targetPosition);
-            } else {
-                // If no position specified, add to end
-                List<Apply> existingInNewColumn = applyRepository.findByJobIdAndStatusOrderByPositionAsc(jobId,
-                        newStatus);
-                int maxPosition = existingInNewColumn.stream()
-                        .mapToInt(a -> a.getPosition() != null ? a.getPosition() : -1)
-                        .max()
-                        .orElse(-1);
-                apply.setPosition(maxPosition + 1);
-            }
-        }
-
-        // Update status
         apply.setStatus(newStatus);
         apply.setUpdatedAt(LocalDateTime.now());
         apply.setUpdatedBy(authentication.getName());
         applyRepository.save(apply);
 
         return mapToResponse(apply);
+    }
+
+    private void updateApplicationPosition(Apply apply, Long jobId, StatusJob oldStatus, StatusJob newStatus,
+            Integer targetPosition) {
+        if (oldStatus.equals(newStatus)) {
+            handleSameColumnReorder(jobId, newStatus, apply.getId(), targetPosition, apply);
+        } else {
+            handleDifferentColumnMove(apply, jobId, oldStatus, newStatus, targetPosition);
+        }
+    }
+
+    private void handleSameColumnReorder(Long jobId, StatusJob status, Long applicationId, Integer targetPosition,
+            Apply apply) {
+        if (targetPosition != null) {
+            reorderWithinColumn(jobId, status, applicationId, targetPosition);
+            apply.setPosition(targetPosition);
+        }
+    }
+
+    private void handleDifferentColumnMove(Apply apply, Long jobId, StatusJob oldStatus, StatusJob newStatus,
+            Integer targetPosition) {
+        if (apply.getPosition() != null) {
+            shiftPositionsInColumn(jobId, oldStatus, apply.getPosition(), -1);
+        }
+
+        if (targetPosition != null) {
+            shiftPositionsInColumn(jobId, newStatus, targetPosition, 1);
+            apply.setPosition(targetPosition);
+        } else {
+            apply.setPosition(calculateEndPosition(jobId, newStatus));
+        }
     }
 
     /**
@@ -732,5 +688,79 @@ public class ApplyServiceImpl implements ApplyService {
         // Extract filename from cvUrl
         String cvUrl = apply.getCvUrl();
         return cvUrl.substring(cvUrl.lastIndexOf("/") + 1);
+    }
+
+    // Helper methods to reduce cognitive complexity
+
+    /**
+     * Check if user has ADMIN role
+     */
+    private boolean hasAdminRole(User user) {
+        return user.getRoles().stream()
+                .anyMatch(role -> role.getName() == RoleType.ADMIN);
+    }
+
+    /**
+     * Check if user has EMPLOYER role
+     */
+    private boolean hasEmployerRole(User user) {
+        return user.getRoles().stream()
+                .anyMatch(role -> role.getName() == RoleType.EMPLOYER);
+    }
+
+    /**
+     * Verify that employer user owns the job's company
+     */
+    private void verifyEmployerOwnsJob(User employer, Job job) {
+        if (employer.getCompany() == null) {
+            throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+        }
+        if (!job.getCompany().getId().equals(employer.getCompany().getId())) {
+            throw new UnauthorizedException("You can only access applications for your company's jobs.");
+        }
+    }
+
+    /**
+     * Verify user has permission to access applications (ADMIN or EMPLOYER)
+     */
+    private void verifyApplicationAccess(User user) {
+        boolean hasAdminRole = hasAdminRole(user);
+        boolean hasEmployerRole = hasEmployerRole(user);
+        if (!hasAdminRole && !hasEmployerRole) {
+            throw new UnauthorizedException("Only ADMIN and EMPLOYER can access applications.");
+        }
+    }
+
+    /**
+     * Verify employer can access job's applications
+     */
+    private void verifyEmployerJobAccess(User employer, Job job) {
+        boolean hasAdminRole = hasAdminRole(employer);
+        boolean hasEmployerRole = hasEmployerRole(employer);
+        if (hasEmployerRole && !hasAdminRole) {
+            verifyEmployerOwnsJob(employer, job);
+        }
+    }
+
+    /**
+     * Get column code from apply (with fallback to status)
+     */
+    private String getColumnCode(Apply apply) {
+        if (apply.getStatusColumn() != null) {
+            return apply.getStatusColumn().getCode();
+        }
+        // Fallback: use status enum if statusColumn is null (backward compatibility)
+        return apply.getStatus() != null ? apply.getStatus().name() : "UNKNOWN";
+    }
+
+    /**
+     * Calculate new position when adding to end of column
+     */
+    private int calculateEndPosition(Long jobId, StatusJob status) {
+        List<Apply> existingInColumn = applyRepository.findByJobIdAndStatusOrderByPositionAsc(jobId, status);
+        return existingInColumn.stream()
+                .mapToInt(a -> a.getPosition() != null ? a.getPosition() : -1)
+                .max()
+                .orElse(-1) + 1;
     }
 }

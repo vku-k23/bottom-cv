@@ -98,54 +98,36 @@ public class StatusColumnServiceImpl implements StatusColumnService {
     @Transactional
     public StatusColumnResponse createStatusColumn(CreateStatusColumnRequest request, Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
+        verifyStatusColumnAccess(currentUser);
 
-        // Check if user has ADMIN or EMPLOYER role
-        boolean hasAdminRole = currentUser.getRoles().stream()
-                .anyMatch(role -> role.getName() == RoleType.ADMIN);
-        boolean hasEmployerRole = currentUser.getRoles().stream()
-                .anyMatch(role -> role.getName() == RoleType.EMPLOYER);
+        validateStatusColumnNameUniqueness(request.getName(), request.getJobId());
 
-        if (!hasAdminRole && !hasEmployerRole) {
-            throw new UnauthorizedException("Only ADMIN and EMPLOYER can create status columns.");
-        }
-
-        // Validate name uniqueness
-        if (request.getJobId() != null) {
-            if (statusColumnRepository.existsByNameAndJobId(request.getName(), request.getJobId())) {
-                throw new BadRequestException("A column with this name already exists for this job.");
-            }
-        } else {
-            if (statusColumnRepository.existsByNameAndJobIdIsNull(request.getName())) {
-                throw new BadRequestException("A global column with this name already exists.");
-            }
-        }
-
-        // For EMPLOYER (without ADMIN role), verify they own the job
-        Job job = null;
-        if (request.getJobId() != null) {
-            job = jobRepository.findById(request.getJobId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Job", "id", request.getJobId().toString()));
-
-            if (hasEmployerRole && !hasAdminRole) {
-                if (currentUser.getCompany() == null) {
-                    throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
-                }
-                if (!job.getCompany().getId().equals(currentUser.getCompany().getId())) {
-                    throw new UnauthorizedException("You can only create status columns for your company's jobs.");
-                }
-            }
-        }
-
-        // Generate unique code
+        Job job = getJobIfSpecified(request.getJobId(), currentUser);
         String code = generateUniqueCode(request.getName(), request.getJobId());
+        int maxOrder = calculateMaxDisplayOrder(request.getJobId());
 
-        // Get max display order
-        Integer maxOrder = statusColumnRepository.findByJobIdOrGlobalOrderByDisplayOrderAsc(request.getJobId())
-                .stream()
-                .mapToInt(StatusColumn::getDisplayOrder)
-                .max()
-                .orElse(-1);
+        StatusColumn column = createNewStatusColumn(request, job, code, maxOrder, authentication);
+        StatusColumn saved = statusColumnRepository.save(column);
+        return mapToResponse(saved);
+    }
 
+    private Job getJobIfSpecified(Long jobId, User currentUser) {
+        if (jobId == null) {
+            return null;
+        }
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new ResourceNotFoundException("Job", "id", jobId.toString()));
+
+        boolean hasAdminRole = hasAdminRole(currentUser);
+        boolean hasEmployerRole = hasEmployerRole(currentUser);
+        if (hasEmployerRole && !hasAdminRole) {
+            verifyEmployerJobOwnership(currentUser, job);
+        }
+        return job;
+    }
+
+    private StatusColumn createNewStatusColumn(CreateStatusColumnRequest request, Job job, String code,
+            int maxOrder, Authentication authentication) {
         StatusColumn column = new StatusColumn();
         column.setName(request.getName());
         column.setCode(code);
@@ -154,9 +136,7 @@ public class StatusColumnServiceImpl implements StatusColumnService {
         column.setJob(job);
         column.setCreatedAt(LocalDateTime.now());
         column.setCreatedBy(authentication.getName());
-
-        StatusColumn saved = statusColumnRepository.save(column);
-        return mapToResponse(saved);
+        return column;
     }
 
     @Override
@@ -164,48 +144,21 @@ public class StatusColumnServiceImpl implements StatusColumnService {
     public StatusColumnResponse updateStatusColumn(Long id, UpdateStatusColumnRequest request,
             Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-
-        // Check if user has ADMIN or EMPLOYER role
-        boolean hasAdminRole = currentUser.getRoles().stream()
-                .anyMatch(role -> role.getName() == RoleType.ADMIN);
-        boolean hasEmployerRole = currentUser.getRoles().stream()
-                .anyMatch(role -> role.getName() == RoleType.EMPLOYER);
-
-        if (!hasAdminRole && !hasEmployerRole) {
-            throw new UnauthorizedException("Only ADMIN and EMPLOYER can update status columns.");
-        }
+        verifyStatusColumnAccess(currentUser);
 
         StatusColumn column = statusColumnRepository.findById(id)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(AppConstant.ENTITY_STATUS_COLUMN, "id", id.toString()));
 
-        // Cannot update default columns
         if (column.getIsDefault()) {
             throw new BadRequestException("Cannot update default system columns.");
         }
 
-        // For EMPLOYER (without ADMIN role), verify they own the job
-        if (hasEmployerRole && !hasAdminRole && column.getJob() != null) {
-            if (currentUser.getCompany() == null) {
-                throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
-            }
-            if (!column.getJob().getCompany().getId().equals(currentUser.getCompany().getId())) {
-                throw new UnauthorizedException("You can only update status columns for your company's jobs.");
-            }
-        }
+        verifyEmployerStatusColumnAccess(currentUser, column);
+        updateStatusColumnNameIfChanged(column, request);
 
-        if (request.getName() != null && !request.getName().equals(column.getName())) {
-            // Validate name uniqueness
-            if (column.getJob() != null) {
-                if (statusColumnRepository.existsByNameAndJobId(request.getName(), column.getJob().getId())) {
-                    throw new BadRequestException("A column with this name already exists for this job.");
-                }
-            } else {
-                if (statusColumnRepository.existsByNameAndJobIdIsNull(request.getName())) {
-                    throw new BadRequestException("A global column with this name already exists.");
-                }
-            }
-            column.setName(request.getName());
+        if (request.getDisplayOrder() != null) {
+            column.setDisplayOrder(request.getDisplayOrder());
         }
 
         if (request.getDisplayOrder() != null) {
@@ -223,36 +176,17 @@ public class StatusColumnServiceImpl implements StatusColumnService {
     @Transactional
     public void deleteStatusColumn(Long id, Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-
-        // Check if user has ADMIN or EMPLOYER role
-        boolean hasAdminRole = currentUser.getRoles().stream()
-                .anyMatch(role -> role.getName() == RoleType.ADMIN);
-        boolean hasEmployerRole = currentUser.getRoles().stream()
-                .anyMatch(role -> role.getName() == RoleType.EMPLOYER);
-
-        if (!hasAdminRole && !hasEmployerRole) {
-            throw new UnauthorizedException("Only ADMIN and EMPLOYER can delete status columns.");
-        }
+        verifyStatusColumnAccess(currentUser);
 
         StatusColumn column = statusColumnRepository.findById(id)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(AppConstant.ENTITY_STATUS_COLUMN, "id", id.toString()));
 
-        // Cannot delete default columns
         if (column.getIsDefault()) {
             throw new BadRequestException("Cannot delete default system columns.");
         }
 
-        // For EMPLOYER (without ADMIN role), verify they own the job
-        if (hasEmployerRole && !hasAdminRole && column.getJob() != null) {
-            if (currentUser.getCompany() == null) {
-                throw new ResourceNotFoundException("Company", "user", currentUser.getId().toString());
-            }
-            if (!column.getJob().getCompany().getId().equals(currentUser.getCompany().getId())) {
-                throw new UnauthorizedException("You can only delete status columns for your company's jobs.");
-            }
-        }
-
+        verifyEmployerStatusColumnAccess(currentUser, column);
         statusColumnRepository.delete(column);
     }
 
@@ -310,6 +244,95 @@ public class StatusColumnServiceImpl implements StatusColumnService {
         }
 
         return baseCode;
+    }
+
+    // Helper methods to reduce cognitive complexity
+
+    /**
+     * Check if user has ADMIN role
+     */
+    private boolean hasAdminRole(User user) {
+        return user.getRoles().stream()
+                .anyMatch(role -> role.getName() == RoleType.ADMIN);
+    }
+
+    /**
+     * Check if user has EMPLOYER role
+     */
+    private boolean hasEmployerRole(User user) {
+        return user.getRoles().stream()
+                .anyMatch(role -> role.getName() == RoleType.EMPLOYER);
+    }
+
+    /**
+     * Verify user has permission to manage status columns (ADMIN or EMPLOYER)
+     */
+    private void verifyStatusColumnAccess(User user) {
+        boolean hasAdminRole = hasAdminRole(user);
+        boolean hasEmployerRole = hasEmployerRole(user);
+        if (!hasAdminRole && !hasEmployerRole) {
+            throw new UnauthorizedException("Only ADMIN and EMPLOYER can manage status columns.");
+        }
+    }
+
+    /**
+     * Verify employer owns the job for status column operations
+     */
+    private void verifyEmployerJobOwnership(User employer, Job job) {
+        if (employer.getCompany() == null) {
+            throw new ResourceNotFoundException("Company", "user", employer.getId().toString());
+        }
+        if (!job.getCompany().getId().equals(employer.getCompany().getId())) {
+            throw new UnauthorizedException("You can only manage status columns for your company's jobs.");
+        }
+    }
+
+    /**
+     * Verify employer can manage status column (if job-specific)
+     */
+    private void verifyEmployerStatusColumnAccess(User user, StatusColumn column) {
+        boolean hasAdminRole = hasAdminRole(user);
+        boolean hasEmployerRole = hasEmployerRole(user);
+        if (hasEmployerRole && !hasAdminRole && column.getJob() != null) {
+            verifyEmployerJobOwnership(user, column.getJob());
+        }
+    }
+
+    /**
+     * Validate name uniqueness for status column
+     */
+    private void validateStatusColumnNameUniqueness(String name, Long jobId) {
+        if (jobId != null) {
+            if (statusColumnRepository.existsByNameAndJobId(name, jobId)) {
+                throw new BadRequestException("A column with this name already exists for this job.");
+            }
+        } else {
+            if (statusColumnRepository.existsByNameAndJobIdIsNull(name)) {
+                throw new BadRequestException("A global column with this name already exists.");
+            }
+        }
+    }
+
+    /**
+     * Calculate max display order for status columns
+     */
+    private int calculateMaxDisplayOrder(Long jobId) {
+        return statusColumnRepository.findByJobIdOrGlobalOrderByDisplayOrderAsc(jobId)
+                .stream()
+                .mapToInt(StatusColumn::getDisplayOrder)
+                .max()
+                .orElse(-1);
+    }
+
+    /**
+     * Update status column name if changed and validate uniqueness
+     */
+    private void updateStatusColumnNameIfChanged(StatusColumn column, UpdateStatusColumnRequest request) {
+        if (request.getName() != null && !request.getName().equals(column.getName())) {
+            Long jobId = column.getJob() != null ? column.getJob().getId() : null;
+            validateStatusColumnNameUniqueness(request.getName(), jobId);
+            column.setName(request.getName());
+        }
     }
 
 }

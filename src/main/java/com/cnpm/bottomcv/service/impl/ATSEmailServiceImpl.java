@@ -56,14 +56,14 @@ public class ATSEmailServiceImpl implements ATSEmailService {
     @Override
     public List<EmailTemplateResponse> getAvailableTemplates(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-        
+
         List<EmailTemplate> templates;
         if (currentUser.getCompany() != null) {
             templates = emailTemplateRepository.findActiveTemplatesForCompany(currentUser.getCompany().getId());
         } else {
             templates = emailTemplateRepository.findGlobalActiveTemplates();
         }
-        
+
         return templates.stream()
                 .map(this::mapToTemplateResponse)
                 .collect(Collectors.toList());
@@ -72,43 +72,45 @@ public class ATSEmailServiceImpl implements ATSEmailService {
     @Override
     public EmailTemplateResponse getTemplateById(Long templateId, Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-        
+
         EmailTemplate template = emailTemplateRepository.findByIdAndIsActiveTrue(templateId)
                 .orElseThrow(() -> new ResourceNotFoundException("Email Template", "id", templateId.toString()));
-        
+
         // Check access: global templates or templates belonging to user's company
-        if (template.getCompany() != null && 
-            (currentUser.getCompany() == null || !template.getCompany().getId().equals(currentUser.getCompany().getId()))) {
+        if (template.getCompany() != null &&
+                (currentUser.getCompany() == null
+                        || !template.getCompany().getId().equals(currentUser.getCompany().getId()))) {
             throw new UnauthorizedException("You don't have access to this template");
         }
-        
+
         return mapToTemplateResponse(template);
     }
 
     @Override
     public Map<String, String> renderTemplate(Long templateId, Long applicationId, Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-        
+
         EmailTemplate template = emailTemplateRepository.findByIdAndIsActiveTrue(templateId)
                 .orElseThrow(() -> new ResourceNotFoundException("Email Template", "id", templateId.toString()));
-        
+
         Apply application = applyRepository.findById(applicationId)
-                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.ENTITY_APPLICATION, "id", applicationId.toString()));
-        
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.ENTITY_APPLICATION, "id",
+                        applicationId.toString()));
+
         // Verify the employer owns this application's job
         verifyApplicationAccess(application, currentUser);
-        
+
         Map<String, String> placeholders = buildPlaceholders(application, currentUser);
-        
+
         String renderedSubject = replacePlaceholders(template.getSubject(), placeholders);
         String renderedContent = replacePlaceholders(template.getContent(), placeholders);
-        
+
         Map<String, String> result = new HashMap<>();
         result.put("subject", renderedSubject);
         result.put("content", renderedContent);
         result.put("templateId", templateId.toString());
         result.put("templateName", template.getName());
-        
+
         return result;
     }
 
@@ -117,19 +119,20 @@ public class ATSEmailServiceImpl implements ATSEmailService {
     public EmailLogResponse sendEmail(SendEmailRequest request, Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
         Helper.checkRole(currentUser, RoleType.EMPLOYER, RoleType.ADMIN);
-        
+
         Apply application = applyRepository.findById(request.getApplicationId())
-                .orElseThrow(() -> new ResourceNotFoundException("Application", "id", request.getApplicationId().toString()));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Application", "id",
+                        request.getApplicationId().toString()));
+
         // Verify the employer owns this application's job
         verifyApplicationAccess(application, currentUser);
-        
+
         // Get template if provided
         EmailTemplate template = null;
         if (request.getTemplateId() != null) {
             template = emailTemplateRepository.findById(request.getTemplateId()).orElse(null);
         }
-        
+
         // Create email log entry
         EmailLog emailLog = EmailLog.builder()
                 .sender(currentUser)
@@ -147,9 +150,9 @@ public class ATSEmailServiceImpl implements ATSEmailService {
                 .status(EmailStatus.PENDING)
                 .attachmentUrls(request.getAttachmentUrls() != null ? toJson(request.getAttachmentUrls()) : null)
                 .build();
-        
+
         emailLog = emailLogRepository.save(emailLog);
-        
+
         // Send email
         try {
             sendEmailViaSMTP(request, emailLog);
@@ -159,23 +162,25 @@ public class ATSEmailServiceImpl implements ATSEmailService {
         } catch (Exception e) {
             emailLog.setStatus(EmailStatus.FAILED);
             emailLog.setErrorMessage(e.getMessage());
-            log.error("Failed to send email to {} for application {}: {}", request.getTo(), request.getApplicationId(), e.getMessage());
+            log.error("Failed to send email to {} for application {}: {}", request.getTo(), request.getApplicationId(),
+                    e.getMessage());
         }
-        
+
         emailLog = emailLogRepository.save(emailLog);
-        
+
         return mapToEmailLogResponse(emailLog);
     }
 
     @Override
-    public ListResponse<EmailLogResponse> getEmailLogs(int pageNo, int pageSize, String sortBy, String sortType, Authentication authentication) {
+    public ListResponse<EmailLogResponse> getEmailLogs(int pageNo, int pageSize, String sortBy, String sortType,
+            Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-        
-        Sort sort = sortType.equalsIgnoreCase(Sort.Direction.ASC.name()) 
-                ? Sort.by(sortBy).ascending() 
+
+        Sort sort = sortType.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        
+
         Page<EmailLog> emailLogs;
         if (Helper.hasRole(currentUser, RoleType.ADMIN)) {
             emailLogs = emailLogRepository.findAll(pageable);
@@ -184,11 +189,11 @@ public class ATSEmailServiceImpl implements ATSEmailService {
         } else {
             emailLogs = emailLogRepository.findBySenderId(currentUser.getId(), pageable);
         }
-        
+
         List<EmailLogResponse> content = emailLogs.getContent().stream()
                 .map(this::mapToEmailLogResponse)
                 .collect(Collectors.toList());
-        
+
         return ListResponse.<EmailLogResponse>builder()
                 .data(content)
                 .pageNo(emailLogs.getNumber())
@@ -202,15 +207,16 @@ public class ATSEmailServiceImpl implements ATSEmailService {
     @Override
     public List<EmailLogResponse> getEmailLogsByApplication(Long applicationId, Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-        
+
         Apply application = applyRepository.findById(applicationId)
-                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.ENTITY_APPLICATION, "id", applicationId.toString()));
-        
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.ENTITY_APPLICATION, "id",
+                        applicationId.toString()));
+
         verifyApplicationAccess(application, currentUser);
-        
+
         Pageable pageable = PageRequest.of(0, 100, Sort.by("createdAt").descending());
         Page<EmailLog> emailLogs = emailLogRepository.findByApplicationId(applicationId, pageable);
-        
+
         return emailLogs.getContent().stream()
                 .map(this::mapToEmailLogResponse)
                 .collect(Collectors.toList());
@@ -220,19 +226,19 @@ public class ATSEmailServiceImpl implements ATSEmailService {
     @Transactional
     public EmailLogResponse retryEmail(Long emailLogId, Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-        
+
         EmailLog emailLog = emailLogRepository.findById(emailLogId)
                 .orElseThrow(() -> new ResourceNotFoundException("Email Log", "id", emailLogId.toString()));
-        
+
         // Verify access
         if (!emailLog.getSender().getId().equals(currentUser.getId()) && !Helper.hasRole(currentUser, RoleType.ADMIN)) {
             throw new UnauthorizedException("You don't have permission to retry this email");
         }
-        
+
         if (emailLog.getStatus() != EmailStatus.FAILED) {
             throw new IllegalStateException("Can only retry failed emails");
         }
-        
+
         // Retry sending
         SendEmailRequest request = SendEmailRequest.builder()
                 .to(emailLog.getReceiverEmail())
@@ -244,7 +250,7 @@ public class ATSEmailServiceImpl implements ATSEmailService {
                 .applicationId(emailLog.getApplication().getId())
                 .attachmentUrls(emailLog.getAttachmentUrls() != null ? fromJson(emailLog.getAttachmentUrls()) : null)
                 .build();
-        
+
         try {
             sendEmailViaSMTP(request, emailLog);
             emailLog.setStatus(EmailStatus.SENT);
@@ -256,30 +262,31 @@ public class ATSEmailServiceImpl implements ATSEmailService {
             emailLog.setErrorMessage(e.getMessage());
             log.error("Email retry failed for log {}: {}", emailLogId, e.getMessage());
         }
-        
+
         emailLog = emailLogRepository.save(emailLog);
         return mapToEmailLogResponse(emailLog);
     }
 
     // Helper methods
-    
-    private void sendEmailViaSMTP(SendEmailRequest request, EmailLog emailLog) throws MessagingException, java.io.UnsupportedEncodingException {
+
+    private void sendEmailViaSMTP(SendEmailRequest request, EmailLog emailLog)
+            throws MessagingException, java.io.UnsupportedEncodingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        
+
         helper.setFrom(fromEmail, fromName);
         helper.setTo(request.getTo());
         helper.setSubject(request.getSubject());
         helper.setText(request.getContent(), true); // true = HTML content
-        
+
         if (request.getCc() != null && !request.getCc().isEmpty()) {
             helper.setCc(request.getCc().toArray(new String[0]));
         }
-        
+
         if (request.getBcc() != null && !request.getBcc().isEmpty()) {
             helper.setBcc(request.getBcc().toArray(new String[0]));
         }
-        
+
         mailSender.send(message);
     }
 
@@ -287,19 +294,19 @@ public class ATSEmailServiceImpl implements ATSEmailService {
         if (Helper.hasRole(currentUser, RoleType.ADMIN)) {
             return; // Admin can access all
         }
-        
+
         if (currentUser.getCompany() == null || application.getJob().getCompany() == null) {
             throw new UnauthorizedException("You don't have access to this application");
         }
-        
+
         if (!currentUser.getCompany().getId().equals(application.getJob().getCompany().getId())) {
             throw new UnauthorizedException("You don't have access to this application");
         }
     }
-    
+
     private Map<String, String> buildPlaceholders(Apply application, User employer) {
         Map<String, String> placeholders = new HashMap<>();
-        
+
         // Candidate info
         Profile candidateProfile = profileRepository.findByUserId(application.getUser().getId()).orElse(null);
         if (candidateProfile != null) {
@@ -313,12 +320,12 @@ public class ATSEmailServiceImpl implements ATSEmailService {
             placeholders.put("candidate_last_name", "");
             placeholders.put("candidate_email", application.getUser().getUsername());
         }
-        
+
         // Job info
         Job job = application.getJob();
         placeholders.put("job_title", job.getTitle());
         placeholders.put("job_location", job.getLocation() != null ? job.getLocation() : "");
-        
+
         // Company info
         Company company = job.getCompany();
         if (company != null) {
@@ -332,7 +339,7 @@ public class ATSEmailServiceImpl implements ATSEmailService {
             placeholders.put("company_name", "");
             placeholders.put("company_address", "");
         }
-        
+
         // Employer info
         Profile employerProfile = profileRepository.findByUserId(employer.getId()).orElse(null);
         if (employerProfile != null) {
@@ -342,7 +349,7 @@ public class ATSEmailServiceImpl implements ATSEmailService {
             placeholders.put("employer_name", employer.getUsername());
             placeholders.put("employer_email", employer.getUsername());
         }
-        
+
         // Date placeholders
         placeholders.put("current_date", LocalDateTime.now().toLocalDate().toString());
         placeholders.put("interview_date", "[INTERVIEW_DATE]");
@@ -350,10 +357,10 @@ public class ATSEmailServiceImpl implements ATSEmailService {
         placeholders.put("interview_location", "[INTERVIEW_LOCATION]");
         placeholders.put("salary", "[SALARY]");
         placeholders.put("start_date", "[START_DATE]");
-        
+
         return placeholders;
     }
-    
+
     private String replacePlaceholders(String text, Map<String, String> placeholders) {
         String result = text;
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
@@ -361,7 +368,7 @@ public class ATSEmailServiceImpl implements ATSEmailService {
         }
         return result;
     }
-    
+
     private EmailTemplateResponse mapToTemplateResponse(EmailTemplate template) {
         return EmailTemplateResponse.builder()
                 .id(template.getId())
@@ -377,38 +384,19 @@ public class ATSEmailServiceImpl implements ATSEmailService {
                 .updatedAt(template.getUpdatedAt())
                 .build();
     }
-    
+
     private EmailLogResponse mapToEmailLogResponse(EmailLog emailLog) {
-        // Get candidate name
-        String candidateName = null;
-        if (emailLog.getCandidate() != null) {
-            Profile profile = profileRepository.findByUserId(emailLog.getCandidate().getId()).orElse(null);
-            if (profile != null) {
-                candidateName = profile.getFirstName() + " " + profile.getLastName();
-            } else {
-                candidateName = emailLog.getCandidate().getUsername();
-            }
-        }
-        
-        // Get sender name
-        String senderName = null;
-        if (emailLog.getSender() != null) {
-            Profile profile = profileRepository.findByUserId(emailLog.getSender().getId()).orElse(null);
-            if (profile != null) {
-                senderName = profile.getFirstName() + " " + profile.getLastName();
-            } else {
-                senderName = emailLog.getSender().getUsername();
-            }
-        }
-        
+        String candidateName = getCandidateName(emailLog);
+        String senderName = getSenderName(emailLog);
+
         return EmailLogResponse.builder()
                 .id(emailLog.getId())
                 .senderId(emailLog.getSender() != null ? emailLog.getSender().getId() : null)
                 .senderName(senderName)
                 .senderEmail(emailLog.getSenderEmail())
                 .receiverEmail(emailLog.getReceiverEmail())
-                .ccEmails(emailLog.getCcEmails() != null ? Arrays.asList(emailLog.getCcEmails().split(",")) : null)
-                .bccEmails(emailLog.getBccEmails() != null ? Arrays.asList(emailLog.getBccEmails().split(",")) : null)
+                .ccEmails(parseEmailList(emailLog.getCcEmails()))
+                .bccEmails(parseEmailList(emailLog.getBccEmails()))
                 .subject(emailLog.getSubject())
                 .content(emailLog.getContent())
                 .templateType(emailLog.getTemplateType())
@@ -426,7 +414,31 @@ public class ATSEmailServiceImpl implements ATSEmailService {
                 .createdAt(emailLog.getCreatedAt())
                 .build();
     }
-    
+
+    private String getCandidateName(EmailLog emailLog) {
+        if (emailLog.getCandidate() == null) {
+            return null;
+        }
+        Profile profile = profileRepository.findByUserId(emailLog.getCandidate().getId()).orElse(null);
+        return profile != null
+                ? profile.getFirstName() + " " + profile.getLastName()
+                : emailLog.getCandidate().getUsername();
+    }
+
+    private String getSenderName(EmailLog emailLog) {
+        if (emailLog.getSender() == null) {
+            return null;
+        }
+        Profile profile = profileRepository.findByUserId(emailLog.getSender().getId()).orElse(null);
+        return profile != null
+                ? profile.getFirstName() + " " + profile.getLastName()
+                : emailLog.getSender().getUsername();
+    }
+
+    private List<String> parseEmailList(String emails) {
+        return emails != null ? Arrays.asList(emails.split(",")) : null;
+    }
+
     private String toJson(List<String> list) {
         try {
             return objectMapper.writeValueAsString(list);
@@ -434,10 +446,11 @@ public class ATSEmailServiceImpl implements ATSEmailService {
             return "[]";
         }
     }
-    
+
     private List<String> fromJson(String json) {
         try {
-            return objectMapper.readValue(json, objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+            return objectMapper.readValue(json,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
         } catch (JsonProcessingException e) {
             return new ArrayList<>();
         }

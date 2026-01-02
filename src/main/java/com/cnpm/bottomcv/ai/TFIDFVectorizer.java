@@ -35,33 +35,44 @@ public class TFIDFVectorizer {
     public void buildIndex(List<User> users, List<Job> jobs) throws IOException {
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         try (IndexWriter writer = new IndexWriter(directory, config)) {
-            // Thêm tài liệu từ CV của người dùng
-            for (User user : users) {
-                List<CV> userCVs = user.getCvs();
-                if (userCVs != null) {
-                    for (CV cv : userCVs) {
-                        Document doc = createLuceneDoc(
-                                (cv.getSkills() != null ? cv.getSkills() : "") + " " +
-                                        (cv.getExperience() != null ? cv.getExperience() : ""),
-                                "user",
-                                user.getId().toString());
-                        writer.addDocument(doc);
-                    }
-                }
-            }
-
-            // Thêm tài liệu từ công việc
-            for (Job job : jobs) {
-                Document doc = createLuceneDoc(
-                        (job.getJobDescription() != null ? job.getJobDescription() : "") + " " +
-                                (job.getJobRequirement() != null ? job.getJobRequirement() : ""),
-                        "job",
-                        job.getId().toString());
-                writer.addDocument(doc);
-            }
+            indexUserCVs(writer, users);
+            indexJobs(writer, jobs);
         }
 
         buildTermDictionary();
+    }
+
+    private void indexUserCVs(IndexWriter writer, List<User> users) throws IOException {
+        for (User user : users) {
+            List<CV> userCVs = user.getCvs();
+            if (userCVs != null) {
+                for (CV cv : userCVs) {
+                    String cvContent = buildCVContent(cv);
+                    Document doc = createLuceneDoc(cvContent, "user", user.getId().toString());
+                    writer.addDocument(doc);
+                }
+            }
+        }
+    }
+
+    private void indexJobs(IndexWriter writer, List<Job> jobs) throws IOException {
+        for (Job job : jobs) {
+            String jobContent = buildJobContent(job);
+            Document doc = createLuceneDoc(jobContent, "job", job.getId().toString());
+            writer.addDocument(doc);
+        }
+    }
+
+    private String buildCVContent(CV cv) {
+        String skills = cv.getSkills() != null ? cv.getSkills() : "";
+        String experience = cv.getExperience() != null ? cv.getExperience() : "";
+        return skills + " " + experience;
+    }
+
+    private String buildJobContent(Job job) {
+        String description = job.getJobDescription() != null ? job.getJobDescription() : "";
+        String requirement = job.getJobRequirement() != null ? job.getJobRequirement() : "";
+        return description + " " + requirement;
     }
 
     private Document createLuceneDoc(String content, String type, String id) {
@@ -79,7 +90,8 @@ public class TFIDFVectorizer {
         try (IndexReader reader = DirectoryReader.open(directory)) {
             for (int i = 0; i < reader.maxDoc(); i++) {
                 Terms terms = reader.getTermVector(i, AppConstant.FIELD_CONTENT);
-                if (terms == null) continue;
+                if (terms == null)
+                    continue;
                 TermsEnum termsEnum = terms.iterator();
                 BytesRef term;
                 while ((term = termsEnum.next()) != null) {
@@ -101,7 +113,8 @@ public class TFIDFVectorizer {
         TokenStream stream = analyzer.tokenStream(AppConstant.FIELD_CONTENT, text);
         stream.reset();
         while (stream.incrementToken()) {
-            String term = stream.getAttribute(org.apache.lucene.analysis.tokenattributes.CharTermAttribute.class).toString();
+            String term = stream.getAttribute(org.apache.lucene.analysis.tokenattributes.CharTermAttribute.class)
+                    .toString();
             termFreq.put(term, termFreq.getOrDefault(term, 0) + 1);
         }
         stream.end();
