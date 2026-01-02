@@ -45,3 +45,4 @@ public interface BlogRepository extends JpaRepository<Blog, Long>, JpaSpecificat
     void incrementViewCount(@Param("id") Long id);
 }
 
+

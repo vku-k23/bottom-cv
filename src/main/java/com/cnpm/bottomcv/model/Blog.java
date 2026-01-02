@@ -69,3 +69,4 @@ public class Blog extends BaseEntity {
     private Category category;
 }
 
+

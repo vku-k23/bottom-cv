@@ -27,3 +27,4 @@ public class BlogSearchRequest {
     private Integer size = 10;
 }
 
+
