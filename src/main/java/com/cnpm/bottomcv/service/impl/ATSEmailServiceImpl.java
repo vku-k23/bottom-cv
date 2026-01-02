@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.AppConstant;
 import com.cnpm.bottomcv.constant.EmailStatus;
 import com.cnpm.bottomcv.constant.EmailTemplateType;
 import com.cnpm.bottomcv.constant.RoleType;
@@ -92,7 +93,7 @@ public class ATSEmailServiceImpl implements ATSEmailService {
                 .orElseThrow(() -> new ResourceNotFoundException("Email Template", "id", templateId.toString()));
         
         Apply application = applyRepository.findById(applicationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Application", "id", applicationId.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.ENTITY_APPLICATION, "id", applicationId.toString()));
         
         // Verify the employer owns this application's job
         verifyApplicationAccess(application, currentUser);
@@ -203,7 +204,7 @@ public class ATSEmailServiceImpl implements ATSEmailService {
         User currentUser = (User) authentication.getPrincipal();
         
         Apply application = applyRepository.findById(applicationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Application", "id", applicationId.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.ENTITY_APPLICATION, "id", applicationId.toString()));
         
         verifyApplicationAccess(application, currentUser);
         

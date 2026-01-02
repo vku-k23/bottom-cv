@@ -1,5 +1,7 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.AppConstant;
+
 import com.cnpm.bottomcv.constant.StatusJob;
 import com.cnpm.bottomcv.dto.request.BulkModerationRequest;
 import com.cnpm.bottomcv.dto.request.ModerationRequest;
@@ -42,14 +44,14 @@ public class ModerationServiceImpl implements ModerationService {
         Page<Job> jobPage;
         if (status != null) {
             jobPage = jobRepository.findAll(
-                    (root, query, cb) -> cb.equal(root.get("status"), status),
+                    (root, query, cb) -> cb.equal(root.get(AppConstant.FIELD_STATUS), status),
                     pageable);
         } else {
             // Get all jobs with PENDING or other statuses that need moderation
             jobPage = jobRepository.findAll(
                     (root, query, cb) -> cb.or(
-                            cb.equal(root.get("status"), StatusJob.PENDING),
-                            cb.equal(root.get("status"), StatusJob.INACTIVE)),
+                            cb.equal(root.get(AppConstant.FIELD_STATUS), StatusJob.PENDING),
+                            cb.equal(root.get(AppConstant.FIELD_STATUS), StatusJob.INACTIVE)),
                     pageable);
         }
 

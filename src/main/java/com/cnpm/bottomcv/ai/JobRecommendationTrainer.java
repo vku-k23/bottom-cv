@@ -43,6 +43,7 @@ public class JobRecommendationTrainer {
     private final CVRepository cvRepository;
     private final ApplyRepository applyRepository;
     private final TFIDFVectorizer tfidfVectorizer;
+    private final Random random = new Random();
 
     public void trainModel() throws Exception {
         // 1. Chuẩn bị dữ liệu
@@ -56,7 +57,6 @@ public class JobRecommendationTrainer {
         int totalFeatureSize = featureSize * 2; // Kết hợp đặc trưng của user và job
 
         List<DataSet> dataSets = new ArrayList<>();
-        Random random = new Random();
 
         // 3. Tạo dữ liệu huấn luyện
         for (Apply apply : applies) {

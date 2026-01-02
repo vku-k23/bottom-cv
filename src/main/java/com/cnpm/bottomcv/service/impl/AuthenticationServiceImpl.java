@@ -1,5 +1,7 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.AppConstant;
+
 import com.cnpm.bottomcv.constant.*;
 import com.cnpm.bottomcv.dto.LoginUserDto;
 import com.cnpm.bottomcv.dto.RegisterUserDto;
@@ -93,7 +95,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public User authenticate(LoginUserDto input) {
 
         User user = userRepository.findByUsername(input.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("Username", "username",
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_USERNAME_LABEL, AppConstant.FIELD_USERNAME,
                         input.getUsername()));
         if (user.getStatus() == UserStatus.PENDING) {
             throw new BadRequestException("Please verify your email to login.");
@@ -293,7 +295,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .getUser()
                 .getUsername();
         return jwtService.generateToken(userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Username", "username",
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_USERNAME_LABEL, AppConstant.FIELD_USERNAME,
                         username)));
     }
 
@@ -303,7 +305,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .getUser()
                 .getUsername();
         return jwtService.generateToken(userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Username", "username",
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_USERNAME_LABEL, AppConstant.FIELD_USERNAME,
                         username)));
     }
 }

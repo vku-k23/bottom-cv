@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,12 @@ public class SavedCandidateServiceImpl implements SavedCandidateService {
     private final UserRepository userRepository;
     private final JobRepository jobRepository;
     private final MinioService minioService;
+    private SavedCandidateService self;
+
+    @Autowired
+    public void setSelf(SavedCandidateService self) {
+        this.self = self;
+    }
 
     @Override
     @Transactional
@@ -153,7 +160,7 @@ public class SavedCandidateServiceImpl implements SavedCandidateService {
             return null; // Return null to indicate unsaved
         } else {
             // Save
-            return saveCandidate(request, authentication);
+            return self.saveCandidate(request, authentication);
         }
     }
 

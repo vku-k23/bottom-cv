@@ -1,5 +1,7 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.AppConstant;
+
 import com.cnpm.bottomcv.dto.request.ReviewRequest;
 import com.cnpm.bottomcv.dto.response.ListResponse;
 import com.cnpm.bottomcv.dto.response.ReviewResponse;
@@ -47,7 +49,7 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public ReviewResponse getReviewById(Long id) {
     Review review = reviewRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Review id", "id", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_REVIEW_ID, "id", id.toString()));
     return mapToResponse(review);
   }
 
@@ -78,7 +80,7 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public ReviewResponse updateReview(Long id, ReviewRequest request) {
     Review review = reviewRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Review id", "id", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_REVIEW_ID, "id", id.toString()));
 
     mapRequestToEntity(review, request);
     review.setUpdatedAt(LocalDateTime.now());
@@ -90,7 +92,7 @@ public class ReviewServiceImpl implements ReviewService {
   @Override
   public void deleteReview(Long id) {
     Review review = reviewRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Review id", "id", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_REVIEW_ID, "id", id.toString()));
     reviewRepository.delete(review);
   }
 
@@ -99,7 +101,7 @@ public class ReviewServiceImpl implements ReviewService {
     review.setRating(request.getRating());
 
     Company company = companyRepository.findById(request.getCompanyId())
-        .orElseThrow(() -> new ResourceNotFoundException("Company id", "companyId",
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_COMPANY_ID_LABEL, AppConstant.FIELD_COMPANY_ID,
             request.getCompanyId().toString()));
     review.setCompany(company);
 

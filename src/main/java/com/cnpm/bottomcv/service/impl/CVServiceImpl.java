@@ -1,5 +1,7 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.AppConstant;
+
 import com.cnpm.bottomcv.dto.request.CVRequest;
 import com.cnpm.bottomcv.dto.response.CVResponse;
 import com.cnpm.bottomcv.dto.response.ListResponse;
@@ -54,7 +56,7 @@ public class CVServiceImpl implements CVService {
   @Override
   public CVResponse getCVById(Long id) {
     CV cv = cvRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("CV id", "cvId", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_CV_ID, "cvId", id.toString()));
     return mapToResponse(cv);
   }
 
@@ -104,7 +106,7 @@ public class CVServiceImpl implements CVService {
   @Override
   public CVResponse updateCV(Long id, CVRequest request) {
     CV cv = cvRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("CV id", "cvId", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_CV_ID, "cvId", id.toString()));
 
     if (request.getCvFile() != null && !request.getCvFile().isEmpty()) {
       deleteFile(cv.getCvFile());
@@ -127,7 +129,7 @@ public class CVServiceImpl implements CVService {
   @Override
   public void deleteCV(Long id) {
     CV cv = cvRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("CV id", "cvId", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_CV_ID, "cvId", id.toString()));
     deleteFile(cv.getCvFile());
     cvRepository.delete(cv);
   }

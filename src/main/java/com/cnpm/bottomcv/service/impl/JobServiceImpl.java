@@ -1,5 +1,7 @@
 package com.cnpm.bottomcv.service.impl;
 
+import com.cnpm.bottomcv.constant.AppConstant;
+
 import com.cnpm.bottomcv.ai.TFIDFVectorizer;
 import com.cnpm.bottomcv.config.RabbitMQConfig;
 import com.cnpm.bottomcv.dto.request.JobRequest;
@@ -177,7 +179,7 @@ public class JobServiceImpl implements JobService {
   @Override
   public JobResponse getJobById(Long id) {
     Job job = jobRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Job id", "id", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_JOB_ID, "id", id.toString()));
     return mapToResponse(job);
   }
 
@@ -251,7 +253,7 @@ public class JobServiceImpl implements JobService {
   @Override
   public JobResponse updateJob(Long id, JobRequest request, Authentication authentication) {
     Job job = jobRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Job id", "id", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_JOB_ID, "id", id.toString()));
 
     // Get current user and role
     User currentUser = (User) authentication.getPrincipal();
@@ -290,7 +292,7 @@ public class JobServiceImpl implements JobService {
   @Transactional
   public void deleteJob(Long id) {
     Job job = jobRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Job id", "id", id.toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_JOB_ID, "id", id.toString()));
     // Delete related saved_jobs first to avoid foreign key constraint
     savedJobRepository.deleteByJobId(id);
     jobRepository.delete(job);
@@ -361,7 +363,7 @@ public class JobServiceImpl implements JobService {
     // Lấy CV của người dùng
     List<CV> cvs = cvRepository.findByUserId(user.getId());
     if (cvs.isEmpty()) {
-      throw new ResourceNotFoundException("CV id", "userId", user.getId().toString());
+      throw new ResourceNotFoundException(AppConstant.FIELD_CV_ID, "userId", user.getId().toString());
     }
 
     // Chọn CV đầu tiên (có thể thay đổi logic để chọn CV mới nhất hoặc CV chính)
@@ -390,7 +392,7 @@ public class JobServiceImpl implements JobService {
     job.setStatus(request.getStatus());
 
     Company company = companyRepository.findById(request.getCompanyId())
-        .orElseThrow(() -> new ResourceNotFoundException("Company id", "id", request.getCompanyId().toString()));
+        .orElseThrow(() -> new ResourceNotFoundException(AppConstant.FIELD_COMPANY_ID_LABEL, "id", request.getCompanyId().toString()));
     job.setCompany(company);
 
     if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
