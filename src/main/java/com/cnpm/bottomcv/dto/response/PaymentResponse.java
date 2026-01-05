@@ -12,4 +12,6 @@ public class PaymentResponse {
     private String referenceId;
     private String currency;
     private Long amountMinor;
+    private String checkoutSessionUrl; // Stripe checkout session URL
+    private String sessionId; // Stripe session ID
 }

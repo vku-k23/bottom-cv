@@ -28,6 +28,13 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/back/payments/verify-session")
+    @PreAuthorize("hasAnyRole('EMPLOYER','ADMIN')")
+    public ResponseEntity<PaymentResponse> verifySession(@RequestParam String sessionId) {
+        var response = paymentService.verifySession(sessionId);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/public/payments/webhook")
     public ResponseEntity<Void> webhook(@RequestBody String payload,
             @RequestHeader(value = "Signature", required = false) String signature) {

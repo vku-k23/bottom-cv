@@ -1,5 +1,6 @@
 package com.cnpm.bottomcv.dto.request;
 
+import com.cnpm.bottomcv.constant.SubscriptionPlanType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,5 +15,11 @@ public class PaymentSessionRequest {
     @Min(1)
     private Long amountMinor;
 
-    private String currency = "VND";
+    private String currency = "USD";
+
+    @NotNull
+    private SubscriptionPlanType planType; // BASIC, STANDARD, PREMIUM
+
+    @NotNull
+    private Long companyId;
 }

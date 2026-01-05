@@ -100,6 +100,10 @@ bottom-cv:
     from: "noreply@bottomcv.com"
     from-name: "BottomCV"
     reply-to: "noreply@bottomcv.com"
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY}
+    publishable-key: ${STRIPE_PUBLISHABLE_KEY}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET}
 
 logging:
   level:

@@ -9,5 +9,7 @@ public interface PaymentService {
 
     void handleWebhook(String payload, String signature);
 
+    PaymentResponse verifySession(String sessionId);
+
     ListResponse<PaymentResponse> listInvoices(int pageNo, int pageSize);
 }

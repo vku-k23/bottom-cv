@@ -22,6 +22,10 @@ import com.cnpm.bottomcv.model.ai.Recommendation;
 import com.cnpm.bottomcv.repository.*;
 import com.cnpm.bottomcv.repository.ai.RecommendationRepository;
 import com.cnpm.bottomcv.service.JobService;
+import com.cnpm.bottomcv.service.SubscriptionService;
+import com.cnpm.bottomcv.constant.SubscriptionPlanType;
+import com.cnpm.bottomcv.model.Subscription;
+import com.cnpm.bottomcv.exception.BadRequestException;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -64,6 +68,7 @@ public class JobServiceImpl implements JobService {
   private MultiLayerNetwork recommendationModel;
   private final RabbitTemplate rabbitTemplate;
   private final RecommendationRepository recommendationRepository;
+  private final SubscriptionService subscriptionService;
   private boolean modelAvailable = false;
 
   @EventListener(ApplicationReadyEvent.class)
@@ -164,6 +169,26 @@ public class JobServiceImpl implements JobService {
       Long userCompanyId = currentUser.getCompany().getId();
       if (!userCompanyId.equals(request.getCompanyId())) {
         throw new UnauthorizedException("EMPLOYER can only create jobs for their own company");
+      }
+
+      // Verify subscription exists for EMPLOYER (ADMIN bypasses this check)
+      if (!subscriptionService.verifySubscriptionExists(userCompanyId)) {
+        throw new UnauthorizedException("Active subscription required to create jobs");
+      }
+
+      // Check job creation limit based on subscription plan
+      Subscription subscription = subscriptionService.getActiveSubscriptionByCompanyId(userCompanyId)
+              .orElseThrow(() -> new UnauthorizedException("Active subscription required to create jobs"));
+      
+      SubscriptionPlanType planType = subscription.getPlanType();
+      int jobLimit = subscriptionService.getJobLimitForPlan(planType);
+      
+      // Count active jobs for the company
+      long activeJobCount = jobRepository.countByCompanyIdAndStatus(userCompanyId, StatusJob.ACTIVE);
+      
+      if (activeJobCount >= jobLimit) {
+        throw new BadRequestException("Job creation limit reached. Your " + planType.getDisplayName() + 
+                " plan allows up to " + jobLimit + " active job(s).");
       }
     }
     // ADMIN can create jobs for any company, no validation needed

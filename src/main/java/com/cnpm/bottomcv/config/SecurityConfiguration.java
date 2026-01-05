@@ -10,7 +10,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -25,8 +24,9 @@ public class SecurityConfiguration {
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                http.cors(Customizer.withDefaults())
-                                .csrf(AbstractHttpConfigurer::disable)
+                http
+                                .csrf(csrf -> csrf.disable())
+                                .cors(Customizer.withDefaults())
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(
                                                                 "/api/v1/auth/**",
@@ -66,13 +66,10 @@ public class SecurityConfiguration {
                                                 .requestMatchers("/api/v1/back/reports/**")
                                                 .hasRole(RoleType.ADMIN.name())
                                                 .requestMatchers("/api/v1/back/payments/**")
-                                                .hasRole(RoleType.ADMIN.name())
-                                                .requestMatchers("/api/v1/back/**").hasRole(RoleType.ADMIN.name()) // Catch-all
-                                                                                                                   // for
-                                                                                                                   // other
-                                                                                                                   // ADMIN-only
-                                                                                                                   // back
-                                                                                                                   // endpoints
+                                                .hasAnyRole(RoleType.ADMIN.name(), RoleType.EMPLOYER.name())
+                                                .requestMatchers("/api/v1/back/subscriptions/**")
+                                                .hasAnyRole(RoleType.ADMIN.name(), RoleType.EMPLOYER.name())
+                                                .requestMatchers("/api/v1/back/**").hasRole(RoleType.ADMIN.name())
                                                 // Other rules
                                                 .requestMatchers("/api/v1/front/**")
                                                 .hasAnyRole(RoleType.CANDIDATE.name(), RoleType.EMPLOYER.name())

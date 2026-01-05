@@ -16,5 +16,6 @@
     <include file="db/changelog/2025/08/10-02-create-status-columns-table.yaml"/>
     <include file="db/changelog/2025/08/11-01-create-blogs-table.yaml"/>
     <include file="db/changelog/db.changelog-admin-dashboard.xml"/>
+    <include file="db/changelog/changes/014-create-subscriptions-table.xml"/>
 
 </databaseChangeLog>
