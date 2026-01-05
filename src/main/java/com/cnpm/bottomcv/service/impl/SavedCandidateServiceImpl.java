@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +39,7 @@ public class SavedCandidateServiceImpl implements SavedCandidateService {
     private final MinioService minioService;
     private SavedCandidateService self;
 
+    @Lazy
     @Autowired
     public void setSelf(SavedCandidateService self) {
         this.self = self;

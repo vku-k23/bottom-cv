@@ -38,19 +38,19 @@ public class User extends BaseEntity implements UserDetails {
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @JsonManagedReference
     @Builder.Default
-    private transient Set<Role> roles = new HashSet<>();
+    private Set<Role> roles = new HashSet<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private transient Profile profile;
+    private Profile profile;
 
     @ManyToOne
     @JoinColumn(name = "company_id")
-    private transient Company company;
+    private Company company;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
-    private transient List<CV> cvs = new ArrayList<>();
+    private List<CV> cvs = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
