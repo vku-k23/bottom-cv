@@ -63,6 +63,19 @@
 -   Credentials and secrets managed securely (e.g., environment variables).
 -   Permissions enforced for user roles.
 
+# Environment Variables
+
+Required environment variables for the application:
+
+-   `GEMINI_API_KEY`: Google Gemini API key for chatbot functionality (required for AI chat feature)
+-   `STRIPE_SECRET_KEY`: Stripe secret key for payment processing
+-   `STRIPE_PUBLISHABLE_KEY`: Stripe publishable key
+-   `STRIPE_WEBHOOK_SECRET`: Stripe webhook secret
+-   `GMAIL_USERNAME`: Gmail username for email service
+-   `GMAIL_PASSWORD`: Gmail password for email service
+
+Set these variables in your environment or `.env` file before running the application.
+
 # Scalability
 
 -   Docker containers enable horizontal scaling if needed.

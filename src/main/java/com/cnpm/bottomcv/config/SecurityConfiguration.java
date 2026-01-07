@@ -32,6 +32,7 @@ public class SecurityConfiguration {
                                                                 "/api/v1/auth/**",
                                                                 "/api/v1/public/**",
                                                                 "/api/v1/info/**",
+                                                                "/api/v1/chat/**",
                                                                 "/v3/api-docs/**",
                                                                 "/swagger-ui.html", "/swagger-ui/**")
                                                 .permitAll()
@@ -39,7 +40,9 @@ public class SecurityConfiguration {
                                                                 "/api/v1/front/categories/**",
                                                                 "/api/v1/front/jobs/**",
                                                                 "/api/v1/front/reviews/**",
-                                                                "/api/v1/front/companies/**")
+                                                                "/api/v1/front/companies/**",
+                                                                "/api/v1/front/blogs/**",
+                                                                "/api/v1/back/categories/**")
                                                 .permitAll()
                                                 // Specific rules for EMPLOYER and ADMIN
                                                 .requestMatchers(
@@ -54,10 +57,7 @@ public class SecurityConfiguration {
                                                 .requestMatchers("/api/v1/applies/**")
                                                 .hasAnyRole(RoleType.CANDIDATE.name(), RoleType.EMPLOYER.name(),
                                                                 RoleType.ADMIN.name())
-                                                // Allow EMPLOYER to GET categories (for job posting), but only ADMIN
-                                                // can modify
-                                                .requestMatchers(HttpMethod.GET, "/api/v1/back/categories/**")
-                                                .hasAnyRole(RoleType.ADMIN.name(), RoleType.EMPLOYER.name())
+                                                // Categories: GET is public (permitAll above), other methods require ADMIN
                                                 .requestMatchers("/api/v1/back/categories/**")
                                                 .hasRole(RoleType.ADMIN.name())
                                                 .requestMatchers("/api/v1/back/users/**").hasRole(RoleType.ADMIN.name())

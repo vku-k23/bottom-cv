@@ -101,9 +101,11 @@ bottom-cv:
     from-name: "BottomCV"
     reply-to: "noreply@bottomcv.com"
   stripe:
-    secret-key: ${STRIPE_SECRET_KEY}
-    publishable-key: ${STRIPE_PUBLISHABLE_KEY}
-    webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+    secret-key: ${STRIPE_SECRET_KEY:}
+    publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
 
 logging:
   level:

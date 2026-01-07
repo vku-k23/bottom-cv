@@ -166,6 +166,7 @@
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
         </dependency>
+        <!-- Google Gemini API - using REST API with Java HTTP client (no SDK dependency needed) -->
         <!-- Stripe Java SDK -->
         <dependency>
             <groupId>com.stripe</groupId>
